@@ -1,0 +1,45 @@
+// Este arquivo define como serão as tabelas no nosso banco de dados.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  password  String // Guardaremos o hash da senha, não a senha real
+  crm       String?   @unique // Opcional e único, para médicos
+  role      String    // "DOCTOR" ou "PATIENT"
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relações que o Prisma gerencia para nós
+  doctorCertificates  MedicalCertificate[] @relation("DoctorCertificates")
+  patientCertificates MedicalCertificate[] @relation("PatientCertificates")
+}
+
+model MedicalCertificate {
+  id               String    @id @default(cuid())
+  issueDate        DateTime  @default(now())
+  purpose          String    // Ex: "Afastamento do Trabalho"
+  startDate        DateTime?
+  durationInDays   Int?
+  cidCode          String?
+  cidDescription   String?
+  observations     String?
+  pdfUrl           String?   // O caminho para o PDF gerado
+
+  // Relação com o médico que emitiu
+  doctor           User      @relation("DoctorCertificates", fields: [doctorId], references: [id])
+  doctorId         String
+
+  // Relação com o paciente que recebeu
+  patient          User      @relation("PatientCertificates", fields: [patientId], references: [id])
+  patientId        String
+}

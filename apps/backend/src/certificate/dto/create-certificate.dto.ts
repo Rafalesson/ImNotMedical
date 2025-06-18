@@ -1,11 +1,19 @@
-// src/certificate/dto/create-certificate.dto.ts
-import { IsString, IsInt, IsOptional, IsDateString } from 'class-validator';
+// src/certificate/dto/create-certificate.dto.ts 
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateCertificateDto {
   @IsString()
-  patientId: string; // O ID do paciente para quem é o atestado
+  @IsNotEmpty()
+  patientId: string;
 
   @IsString()
+  @IsNotEmpty()
   purpose: string;
 
   @IsOptional()
@@ -15,7 +23,8 @@ export class CreateCertificateDto {
   @IsOptional()
   @IsInt()
   durationInDays?: number;
-
+  
+  // Garantindo que o campo CID está aqui
   @IsOptional()
   @IsString()
   cidCode?: string;

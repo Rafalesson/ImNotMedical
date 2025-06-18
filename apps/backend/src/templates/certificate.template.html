@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atestado Médico</title>
+    <link rel="stylesheet" href="templateAtestado.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h2>{{doctorName}}</h2>
+      <p>{{doctorSpecialty}} | CRM {{doctorCRM}}</p>
+      <p>{{doctorAddress}} | {{doctorPhone}}</p>
+    </header>
+    <main>
+      <section class="title">
+        <h1>ATESTADO MÉDICO</h1>
+      </section>
+      <section class="patient-info">
+        <div class="patient-details">
+          <span><strong>Paciente:</strong> {{patientName}}</span>
+          <span><strong>CPF:</strong> {{patientCPF}}</span>
+        </div>
+        <div class="patient-details">
+          <span><strong>Idade:</strong> {{patientAge}} anos</span>
+          <span><strong>Sexo:</strong> {{patientSex}}</span>
+        </div>
+      </section>
+      <section class="content">
+        <p>
+          Atesto, para os devidos fins, que o(a) paciente
+          <strong>{{patientName}}</strong>, portador(a) do CPF nº
+          <strong>{{patientCPF}}</strong>, esteve sob meus cuidados
+          profissionais na presente data, necessitando de
+          <strong>{{durationInDays}} ({{durationInWords}}) dia(s)</strong> de
+          afastamento de suas atividades laborais/outras, a partir de
+          <strong>{{startDate}}</strong>.
+        </p>
+        <p><strong>Finalidade:</strong> {{purpose}}</p>
+        <p><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>
+      </section>
+    </main>
+    <footer class="footer">
+      <div>
+        <p>Emitido em {{issueDateTime}}</p>
+        <p id="footer_p2">
+          Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
+          <br />
+          Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
+          CFM Nº 2.382/2024.
+        </p>
+        <p>
+          Documento assinado digitalmente por {{doctorName}} <br />
+          A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+          Código de validação do documento: <strong>{{certificateId}}</strong>
+        </p>
+      </div>
+      <div class="container_img">
+        <img
+          src="{{signaturePngImage}}"
+          alt="Imagem da assinatura em PNG"
+          id="signature_img"
+        />
+
+        <img
+          src="{{signatureImage}}"
+          alt="Imagem da assinatura eletronica"
+          id="icp_img"
+        />
+      </div>
+    </footer>
+  </body>
+</html>

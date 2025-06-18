@@ -6,7 +6,7 @@ services:
     container_name: telemedicine_db
     restart: always
     ports:
-      - "5935:5432"
+      - "5499:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: mysecretpassword

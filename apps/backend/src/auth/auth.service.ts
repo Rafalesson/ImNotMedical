@@ -1,4 +1,4 @@
-// src/auth/auth.service.ts
+// src/auth/auth.service.ts (versão final limpa)
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -11,7 +11,6 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // GARANTA QUE ESTE MÉTODO ESTÁ EXATAMENTE ASSIM DENTRO DA CLASSE
   async signIn(email: string, pass: string): Promise<{ access_token: string }> {
     const user = await this.userService.findOneByEmail(email);
 
@@ -19,7 +18,13 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const profile = user.doctorProfile || user.patientProfile;
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      name: profile?.name,
+    };
 
     return {
       access_token: await this.jwtService.signAsync(payload),

@@ -1,42 +1,55 @@
-// src/app/validar/page.tsx (versão final com seção de ajuda)
+// Endereço: apps/frontend/src/app/validar/page.tsx
 'use client';
 
-import { api } from '@/services/api';
 import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircle, AlertTriangle, Search, HelpCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { HelpCircle, Search } from 'lucide-react';
 import { ValidationResult } from '@/components/ValidationResult';
 import { PublicLayout } from '@/components/PublicLayout';
-import Image from 'next/image'; // Importamos o componente de Imagem otimizado do Next.js
+import Image from 'next/image';
+
+// 1. IMPORTAMOS O USEQUERY
+import { useQuery } from '@tanstack/react-query';
+
+// 2. IMPORTAMOS NOSSA FUNÇÃO DE API (ou a definimos aqui)
+import { api } from '@/services/api';
+
+const fetchCertificate = async (code: string) => {
+  if (!code.trim()) return null;
+  const response = await api.get(`/certificates/validate/${code}`);
+  return response.data;
+};
+
 
 export default function ValidatePage() {
   const searchParams = useSearchParams();
-  const [code, setCode] = useState(searchParams.get('codigo') || '');
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const codeFromUrl = searchParams.get('codigo') || '';
+  const [code, setCode] = useState(codeFromUrl);
 
-  const handleValidate = useCallback(async (validationCode: string) => {
-    if (!validationCode.trim()) return;
-    setIsLoading(true);
-    setResult(null);
-    setError(null);
-    try {
-      const response = await api.get(`/certificates/validate/${validationCode}`);
-      setResult(response.data);
-    } catch (err) {
-      setError('Atestado não encontrado ou inválido.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // 3. SUBSTITUÍMOS 3 USESTATES POR 1 USEQUERY
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ['certificate', code], // Chave única para esta query
+    queryFn: () => fetchCertificate(code), // Função que busca os dados
+    enabled: false, // IMPORTANTE: A query não roda automaticamente
+    retry: 1, // Tenta novamente apenas 1 vez em caso de erro
+  });
 
+  // 4. SIMPLIFICAMOS O 'HANDLEVALIDATE'
+  const handleValidate = (event?: React.FormEvent) => {
+    event?.preventDefault();
+    refetch(); // Apenas chamamos o refetch. O useQuery cuida de todo o resto!
+  };
+
+  // 5. AJUSTAMOS O USEEFFECT PARA RODAR COM O CÓDIGO DA URL
   useEffect(() => {
-    const codeFromUrl = searchParams.get('codigo');
     if (codeFromUrl) {
-      handleValidate(codeFromUrl);
+      refetch();
     }
-  }, [searchParams, handleValidate]);
+    // O refetch é estável, mas o ESLint pode pedir para incluí-lo.
+  }, [codeFromUrl, refetch]);
+
+  // Montamos a mensagem de erro customizada baseada no estado do useQuery
+  const customError = error ? 'Atestado não encontrado ou inválido.' : null;
 
   return (
     <PublicLayout>
@@ -48,7 +61,7 @@ export default function ValidatePage() {
           <p className="text-center text-gray-500 mb-6">
             Insira o código único do documento para verificar sua autenticidade.
           </p>
-          <form onSubmit={(e) => { e.preventDefault(); handleValidate(code); }} className="flex items-center space-x-2">
+          <form onSubmit={handleValidate} className="flex items-center space-x-2">
             <input
               type="text"
               value={code}
@@ -61,14 +74,13 @@ export default function ValidatePage() {
             </button>
           </form>
 
-          {/* --- LÓGICA DE EXIBIÇÃO ATUALIZADA --- */}
           <div className="mt-8 min-h-[200px] flex items-center justify-center">
             {isLoading && <p className="text-gray-500 animate-pulse">Validando...</p>}
-            
-            {(result || error) && <ValidationResult result={result} error={error} />}
-            
-            {/* SE NÃO ESTIVER CARREGANDO E NÃO HOUVER RESULTADO, MOSTRA A DICA */}
-            {!isLoading && !result && !error && (
+
+            {/* 6. USAMOS 'data' E 'customError' VINDOS DO USEQUERY */}
+            {(data || customError) && !isLoading && <ValidationResult result={data} error={customError} />}
+
+            {!isLoading && !data && !customError && (
               <div className="w-full rounded-lg border-2 border-dashed border-gray-200 p-6 text-center text-gray-600">
                 <HelpCircle className="mx-auto mb-3 h-8 w-8 text-gray-400" />
                 <h3 className="font-semibold text-gray-800 mb-2">Onde encontro o código?</h3>
@@ -79,7 +91,7 @@ export default function ValidatePage() {
                   src="/dicas.png"
                   alt="Exemplo de onde encontrar o código no atestado"
                   width={500}
-                  height={150} // Ajuste a altura conforme necessário
+                  height={150}
                   className="mx-auto rounded-md border shadow-sm"
                 />
               </div>

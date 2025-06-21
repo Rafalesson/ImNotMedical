@@ -1,3 +1,4 @@
+// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão refatorada)
 'use client';
 
 import { createContext, useState, useEffect, ReactNode } from 'react';
@@ -8,7 +9,7 @@ interface User {
   userId: string;
   email: string;
   role: 'DOCTOR' | 'PATIENT';
-  name: string; 
+  name: string;
 }
 
 interface AuthContextType {
@@ -16,18 +17,18 @@ interface AuthContextType {
   user: User | null;
   signIn: (data: any) => Promise<void>;
   signOut: () => void;
+  loading: boolean; // 1. EXPOR O ESTADO DE LOADING É UMA BOA PRÁTICA
 }
 
 export const AuthContext = createContext({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); 
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const router = useRouter(); // O router ainda pode ser útil para outras coisas, como o signOut
 
   const isAuthenticated = !!user;
 
-  // ESTE useEffect VAI RODAR APENAS UMA VEZ, QUANDO O COMPONENTE "ACORDA" NO NAVEGADOR
   useEffect(() => {
     const token = localStorage.getItem('zello.token');
 
@@ -38,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(response.data);
         })
         .catch(() => {
-          // Se o token for inválido, limpa tudo
           localStorage.removeItem('zello.token');
           setUser(null);
         })
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // 2. FUNÇÃO SIGNIN MODIFICADA
   async function signIn({ email, password }: any) {
     try {
       const { data } = await api.post('/auth/login', { email, password });
@@ -61,11 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profileResponse = await api.get('/auth/profile');
       setUser(profileResponse.data);
 
-      router.push('/dashboard'); // <-- A LINHA MÁGICA DO REDIRECIONAMENTO
+      // REMOVEMOS o router.push daqui. A página de login agora é responsável por isso.
 
     } catch (error) {
-      console.error("Falha no login:", error);
-      alert('Email ou senha inválidos!'); // Uma forma simples de dar feedback
+      // 3. A MUDANÇA PRINCIPAL: REMOVEMOS O ALERT E APENAS RE-LANÇAMOS O ERRO
+      // Isso permite que o 'try...catch' da página de login funcione como planejado.
+      throw error;
     }
   }
 
@@ -73,15 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('zello.token');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
+    // Opcional: redirecionar para o login ao deslogar
+    router.push('/'); 
   }
 
-  // Se estiver carregando (verificando o token), não mostramos nada ainda
   if (loading) {
-    return null; // Ou um componente de "Spinner/Loading..."
+    return null; 
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   );

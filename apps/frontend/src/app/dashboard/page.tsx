@@ -35,19 +35,6 @@ export default function DashboardPage() {
     }
     fetchCertificates();
   }, [isAuthenticated, router]);
-
-  // --- NOSSA NOVA FUNÇÃO DE TESTE ---
-  const handleTestConnection = async () => {
-    try {
-      console.log('Testando conexão com o backend...');
-      const response = await api.get('/'); // Tenta acessar a rota mais simples: "Hello World!"
-      console.log('Conexão com o backend OK! Resposta:', response.data);
-      alert('SUCESSO! A conexão com o backend está funcionando.');
-    } catch (error) {
-      console.error('FALHA na conexão com o backend:', error);
-      alert('FALHA! A conexão com o backend não funcionou. Verifique o console.');
-    }
-  };
   
   if (!isAuthenticated) {
     return null; 
@@ -57,13 +44,6 @@ export default function DashboardPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        {/* --- NOSSO NOVO BOTÃO DE TESTE --- */}
-        <button 
-          onClick={handleTestConnection}
-          className="bg-yellow-500 text-white font-bold py-2 px-4 rounded hover:bg-yellow-600"
-        >
-          Testar Conexão Backend
-        </button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

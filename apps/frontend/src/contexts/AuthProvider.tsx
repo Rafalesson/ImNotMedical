@@ -1,9 +1,10 @@
-// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão refatorada)
+// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão final com cookies)
 'use client';
 
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie'; // 1. IMPORTAMOS A BIBLIOTECA DE COOKIES
 
 interface User {
   userId: string;
@@ -17,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   signIn: (data: any) => Promise<void>;
   signOut: () => void;
-  loading: boolean; // 1. EXPOR O ESTADO DE LOADING É UMA BOA PRÁTICA
+  loading: boolean;
 }
 
 export const AuthContext = createContext({} as AuthContextType);
@@ -25,12 +26,13 @@ export const AuthContext = createContext({} as AuthContextType);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // O router ainda pode ser útil para outras coisas, como o signOut
+  const router = useRouter();
 
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    const token = localStorage.getItem('zello.token');
+    // 2. LEMOS O TOKEN DOS COOKIES, NÃO MAIS DO LOCALSTORAGE
+    const token = Cookies.get('zello.token');
 
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -39,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(response.data);
         })
         .catch(() => {
-          localStorage.removeItem('zello.token');
+          Cookies.remove('zello.token'); // Limpa o cookie se for inválido
           setUser(null);
         })
         .finally(() => {
@@ -50,33 +52,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // 2. FUNÇÃO SIGNIN MODIFICADA
   async function signIn({ email, password }: any) {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       const { access_token } = data;
 
-      localStorage.setItem('zello.token', access_token);
+      // 3. SALVAMOS O TOKEN NOS COOKIES
+      // O token irá expirar em 1 dia.
+      Cookies.set('zello.token', access_token, { expires: 1, path: '/' }); 
+
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
       const profileResponse = await api.get('/auth/profile');
       setUser(profileResponse.data);
 
-      // REMOVEMOS o router.push daqui. A página de login agora é responsável por isso.
-
     } catch (error) {
-      // 3. A MUDANÇA PRINCIPAL: REMOVEMOS O ALERT E APENAS RE-LANÇAMOS O ERRO
-      // Isso permite que o 'try...catch' da página de login funcione como planejado.
       throw error;
     }
   }
 
   function signOut() {
-    localStorage.removeItem('zello.token');
+    // 4. REMOVEMOS O TOKEN DOS COOKIES AO DESLOGAR
+    Cookies.remove('zello.token');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
-    // Opcional: redirecionar para o login ao deslogar
-    router.push('/'); 
+    router.push('/login'); 
   }
 
   if (loading) {

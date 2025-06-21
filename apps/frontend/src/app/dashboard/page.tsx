@@ -1,43 +1,51 @@
-// src/app/dashboard/page.tsx (versão de depuração com botão de teste)
+// Endereço: apps/frontend/src/app/dashboard/page.tsx (versão final após refatoração para middleware)
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthContext } from '@/contexts/AuthProvider';
+// O 'useContext' e 'useRouter' foram removidos, pois não são mais necessários para a lógica de autenticação aqui.
+import { useState, useEffect } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { api } from '@/services/api';
 import Link from 'next/link';
 
+// Definimos o tipo para o atestado para manter o código organizado.
 type Certificate = {
   id: string;
   purpose: string;
   issueDate: string;
+  // Adicione outros campos que a API retornar, se necessário.
 };
 
 export default function DashboardPage() {
-  const { user, isAuthenticated } = useContext(AuthContext);
-  const router = useRouter();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  // Podemos adicionar um estado de loading para os dados da página, se quisermos.
+  const [isLoading, setIsLoading] = useState(true);
 
+  // REMOVIDO: O 'useEffect' que verificava a autenticação e redirecionava. O middleware agora faz isso.
+
+  // O componente agora foca apenas em buscar seus próprios dados e renderizar a UI.
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
     async function fetchCertificates() {
+      setIsLoading(true);
       try {
         const response = await api.get('/certificates/my-certificates');
         setCertificates(response.data);
       } catch (error) {
+        // Agora que temos um tratador de erro global, podemos pensar em como
+        // lidar com erros de fetch de dados específicos da página.
+        // Por enquanto, um log de erro é suficiente.
         console.error("Erro ao buscar atestados:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchCertificates();
-  }, [isAuthenticated, router]);
+  }, []); // A lista de dependências está vazia, pois este fetch só precisa rodar uma vez.
+
+  // REMOVIDO: A verificação 'if (!isAuthenticated) { return null; }'. O middleware garante que nunca chegaremos aqui sem autenticação.
   
-  if (!isAuthenticated) {
-    return null; 
+  // Poderíamos mostrar um spinner enquanto os dados da página carregam.
+  if (isLoading) {
+    return <div>Carregando informações do dashboard...</div>;
   }
 
   return (
@@ -66,7 +74,15 @@ export default function DashboardPage() {
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Atestados Emitidos Recentemente</h2>
         <div className="space-y-4">
-          {/* ... lógica de exibir atestados ... */}
+          {certificates.length > 0 ? (
+            certificates.map(cert => (
+              <div key={cert.id} className="p-2 border-b">
+                {cert.purpose} - {new Date(cert.issueDate).toLocaleDateString()}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">Nenhum atestado emitido recentemente.</p>
+          )}
         </div>
       </div>
     </div>

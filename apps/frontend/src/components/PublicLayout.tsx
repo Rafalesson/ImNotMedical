@@ -1,4 +1,4 @@
-// src/components/PublicLayout.tsx
+// Endereço: apps/frontend/src/components/PublicLayout.tsx (versão final com CSS Grid)
 'use client';
 
 import { Footer } from "./Footer";
@@ -10,11 +10,15 @@ export function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    // 1. O layout agora usa CSS Grid para organizar o cabeçalho, o conteúdo principal e o rodapé.
+    // Isso permite que o cabeçalho e o rodapé tenham altura fixa, enquanto o conteúdo principal é rolável.
+    <div className="grid h-screen grid-rows-[auto_1fr_auto] bg-gray-50">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
+
+      <main className="overflow-y-auto p-4 flex items-center justify-center">
         {children}
       </main>
+
       <Footer />
     </div>
   );

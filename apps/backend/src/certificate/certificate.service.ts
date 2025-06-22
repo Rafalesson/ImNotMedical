@@ -1,3 +1,5 @@
+// Endereço: apps/backend/src/certificate/certificate.service.ts (versão final corrigida)
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,6 +9,7 @@ import { CertificateData } from './certificate.types';
 import { calculateAge, numberToWords } from 'src/utils';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Sex } from '@prisma/client';
 
 @Injectable()
 export class CertificateService {
@@ -17,12 +20,25 @@ export class CertificateService {
   ) {}
 
   private async prepareDataForPdf(dto: CreateCertificateDto, doctorId: string, certificateId: string): Promise<CertificateData> {
-    const doctor = await this.prisma.user.findUnique({ where: { id: doctorId }, include: { doctorProfile: true } });
-    const patient = await this.prisma.user.findUnique({ where: { id: dto.patientId }, include: { patientProfile: true } });
+    // 1. MUDANÇA NA BUSCA: Incluímos a relação de endereço para o médico e paciente
+    const doctor = await this.prisma.user.findUnique({
+      where: { id: doctorId },
+      include: { doctorProfile: { include: { address: true } } },
+    });
+    const patient = await this.prisma.user.findUnique({
+      where: { id: dto.patientId },
+      include: { patientProfile: { include: { address: true } } },
+    });
 
     if (!doctor?.doctorProfile || !patient?.patientProfile) {
       throw new NotFoundException('Perfil não encontrado.');
     }
+    
+    // 2. FORMATAÇÃO DO ENDEREÇO: Transformamos o objeto de endereço em uma string legível
+    const doctorAddressObj = doctor.doctorProfile.address;
+    const formattedDoctorAddress = doctorAddressObj
+      ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.neighborhood}, ${doctorAddressObj.city} - ${doctorAddressObj.state}`
+      : 'Endereço não informado';
 
     let cidDescription = dto.cidCode ? (await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } }))?.description : null;
     const issueDate = new Date();
@@ -32,12 +48,12 @@ export class CertificateService {
       doctorName: doctor.doctorProfile.name,
       doctorCrm: doctor.doctorProfile.crm,
       doctorSpecialty: doctor.doctorProfile.specialty,
-      doctorAddress: doctor.doctorProfile.address,
+      doctorAddress: formattedDoctorAddress, // <-- Usamos a string formatada
       doctorPhone: doctor.doctorProfile.phone,
       patientName: patient.patientProfile.name,
       patientCpf: patient.patientProfile.cpf,
       patientAge: calculateAge(patient.patientProfile.dateOfBirth).toString(),
-      patientSex: patient.patientProfile.sex,
+      patientSex: patient.patientProfile.sex === Sex.MALE ? 'Masculino' : patient.patientProfile.sex === Sex.FEMALE ? 'Feminino' : 'Não informado',
       durationInDays: dto.durationInDays || 0,
       durationInWords: numberToWords(dto.durationInDays || 0),
       startDate: dto.startDate ? new Date(dto.startDate).toLocaleDateString('pt-BR') : issueDate.toLocaleDateString('pt-BR'),
@@ -49,6 +65,8 @@ export class CertificateService {
     };
   }
 
+  // ... O resto do seu serviço (generateCertificatePdf, create, etc.) não precisa de mudanças ...
+  // ... pois eles dependem da função 'prepareDataForPdf' que acabamos de corrigir.
   async generateCertificatePdf(dto: CreateCertificateDto, doctorId: string): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 'PREVIEW-ID');
     const html = this.templatesService.getPopulatedCertificateHtml(data);

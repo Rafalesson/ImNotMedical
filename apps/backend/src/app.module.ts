@@ -12,6 +12,7 @@ import { TemplatesModule } from './templates/templates.module';
 import { CidsModule } from './cids/cids.module';
 import { ServeStaticModule } from '@nestjs/serve-static'; 
 import { join } from 'path'; 
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { join } from 'path';
     PdfModule,
     TemplatesModule,
     CidsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

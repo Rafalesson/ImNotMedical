@@ -1,10 +1,11 @@
-// prisma/seed.ts (versão final que lê a propriedade 'display')
-import { PrismaClient } from '@prisma/client';
+// Endereço: apps/backend/prisma/seed.ts 
+import { PrismaClient, Role } from '@prisma/client'; 
 import * as fs from 'fs';
 import * as path from 'path';
-
+import * as bcrypt from 'bcrypt'; 
 const prisma = new PrismaClient();
 
+// Suas funções auxiliares permanecem as mesmas
 function stripHtml(html: string): string {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').trim();
@@ -16,9 +17,13 @@ function formatDescription(text: string): string {
   return trimmedText.charAt(0).toUpperCase() + trimmedText.slice(1).toLowerCase();
 }
 
-async function main() {
-  console.log('Iniciando o processo de seeding...');
 
+async function main() {
+  console.log('Iniciando o processo de seeding completo...');
+
+  // ==========================================================
+  // PARTE 1: LÓGICA EXISTENTE PARA POPULAR CID-10
+  // ==========================================================
   await prisma.cidCode.deleteMany({});
   console.log('Tabela CidCode limpa com sucesso.');
 
@@ -28,27 +33,94 @@ async function main() {
   
   const cid10RawData: { code: string; display: string }[] = Array.isArray(jsonData)
     ? jsonData
-    : jsonData.concept; // Assumindo que a lista está na propriedade 'concept' do seu arquivo FHIR
+    : jsonData.concept;
 
   if (!Array.isArray(cid10RawData)) {
-    throw new Error('Não foi possível encontrar uma lista (array) de CIDs dentro do arquivo cid10.json. Verifique se a propriedade "concept" existe.');
+    throw new Error('Não foi possível encontrar uma lista (array) de CIDs dentro do arquivo cid10.json.');
   }
 
   const cid10CleanData = cid10RawData.map(cid => ({
     code: cid.code,
-    // AQUI ESTÁ A CORREÇÃO! Usamos 'cid.display' em vez de 'cid.description'
     description: formatDescription(stripHtml(cid.display)), 
   }));
 
-  console.log(`Lidos e limpos ${cid10CleanData.length} códigos. Iniciando inserção...`);
+  console.log(`Lidos e limpos ${cid10CleanData.length} códigos. Iniciando inserção de CIDs...`);
 
   await prisma.cidCode.createMany({
     data: cid10CleanData,
     skipDuplicates: true,
   });
 
-  console.log(`Seeding finalizado! ${cid10CleanData.length} códigos CID-10 foram adicionados ao banco de dados.`);
+  console.log(`Seeding de CIDs finalizado! ${cid10CleanData.length} códigos foram adicionados.`);
+
+
+  // ==========================================================
+  // PARTE 2: NOVA LÓGICA PARA CRIAR USUÁRIOS DE TESTE
+  // ==========================================================
+  console.log('Iniciando criação de usuários de teste...');
+
+  // Limpa usuários de teste antigos para evitar duplicidade
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        in: ['dr.barbara@zello.com', 'livia.santos@email.com'],
+      },
+    },
+  });
+  console.log('Usuários de teste antigos removidos.');
+
+
+  const hashedPassword = await bcrypt.hash('123456', 10);
+
+  // --- CRIAÇÃO DO MÉDICO DE TESTE ---
+  const doctor = await prisma.user.create({
+    data: {
+      email: 'dr.barbara@zello.com',
+      phone: '11988887777',
+      password: hashedPassword,
+      role: Role.DOCTOR,
+      doctorProfile: {
+        create: {
+          name: 'Dra. Bárbara Ponce',
+          crm: '12345SP',
+          specialty: 'Cardiologia',
+          address: {
+            create: {
+              street: 'Av. Paulista',
+              number: '1000',
+              neighborhood: 'Bela Vista',
+              city: 'São Paulo',
+              state: 'SP',
+              zipCode: '01310-100',
+            },
+          },
+        },
+      },
+    },
+  });
+  console.log(`Médico de teste criado: ${doctor.email}`);
+
+  // --- CRIAÇÃO DO PACIENTE DE TESTE ---
+  const patient = await prisma.user.create({
+    data: {
+      email: 'livia@email.com',
+      phone: '21977776666',
+      password: hashedPassword,
+      role: Role.PATIENT,
+      patientProfile: {
+        create: {
+          name: 'Lívia L. S. Santos',
+          cpf: '111.222.333-44',
+          dateOfBirth: new Date('1990-05-15T00:00:00.000Z'),
+        },
+      },
+    },
+  });
+  console.log(`Paciente de teste criado: ${patient.email}`);
+
+  console.log('Seeding completo!');
 }
+
 
 main()
   .catch((e) => {

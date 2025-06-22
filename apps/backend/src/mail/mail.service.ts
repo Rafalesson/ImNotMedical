@@ -14,10 +14,6 @@ export class MailService {
   private async initializeTransporter() {
     const testAccount = await nodemailer.createTestAccount();
 
-    console.log('ETHEREAL TEST ACCOUNT:');
-    console.log('User:', testAccount.user);
-    console.log('Pass:', testAccount.pass);
-
     this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,

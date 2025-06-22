@@ -43,13 +43,8 @@ export default function LoginPage() {
   return (
     // Container principal que ocupa a tela inteira e usa flexbox
     <div className="flex min-h-screen bg-white">
-      
-      {/* ======================================================================= */}
-      {/* PAINEL ESQUERDO (IMAGEM)                                                */}
-      {/* 'hidden lg:block' faz este painel aparecer apenas em telas grandes (lg) */}
-      {/* ======================================================================= */}
       <div 
-        className="hidden lg:block w-1/2 bg-contain bg-center"
+        className="hidden lg:block w-1/2 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/login_img.svg)' }}
       >
         {/* Este painel é puramente visual */}

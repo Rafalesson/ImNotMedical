@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/app/login/page.tsx (versão final com layout split-screen)
+// Endereço: apps/frontend/src/app/login/page.tsx (versão com links de cadastro e recuperação)
 'use client';
 
 import { useContext, useState } from 'react';
@@ -41,22 +41,13 @@ export default function LoginPage() {
   }
 
   return (
-    // Container principal que ocupa a tela inteira e usa flexbox
     <div className="flex min-h-screen bg-white">
       <div 
-        className="hidden lg:block w-1/2 bg-cover bg-center bg-no-repeat"
+        className="hidden lg:block w-1/2 bg-cover bg-center"
         style={{ backgroundImage: 'url(/login_img.svg)' }}
-      >
-        {/* Este painel é puramente visual */}
-      </div>
-
-      {/* ======================================================================= */}
-      {/* PAINEL DIREITO (FORMULÁRIO)                                             */}
-      {/* 'w-full lg:w-1/2' faz o painel ocupar a tela toda no mobile e metade no desktop */}
-      {/* ======================================================================= */}
+      />
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          {/* Adicionamos o logo aqui, já que não temos mais o Header */}
           <Link href="/" className="mb-8 inline-block">
             <span className="text-3xl font-bold text-gray-800 tracking-tight">Zello</span>
           </Link>
@@ -65,14 +56,27 @@ export default function LoginPage() {
             <h1 className="text-left text-3xl font-bold text-gray-800">
                 Acesse sua conta
             </h1>
-            <form onSubmit={handleSignIn} className="space-y-6">
+            <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
                     <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">Email</label>
                     <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required />
                 </div>
                 <div>
-                    <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">Senha</label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="password" className="text-sm font-medium text-gray-700">Senha</label>
+                    
+                    {/* ======================================================================= */}
+                    {/* LINK DE RECUPERAÇÃO DE SENHA ADICIONADO AQUI                         */}
+                    {/* ======================================================================= */}
+                    <div className="text-sm">
+                      <Link href="/recuperar-senha" className="font-semibold text-blue-600 hover:text-blue-500">
+                        Esqueceu a senha?
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="mt-2">
                     <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required />
+                  </div>
                 </div>
 
                 {error && (
@@ -89,6 +93,16 @@ export default function LoginPage() {
                   {isLoading ? 'Entrando...' : 'Entrar'}
                 </button>
             </form>
+            
+            {/* ======================================================================= */}
+            {/* LINK DE CADASTRO ADICIONADO AQUI                                        */}
+            {/* ======================================================================= */}
+            <p className="mt-8 text-center text-sm text-gray-500">
+              Não tem uma conta?{' '}
+              <Link href="/cadastro" className="font-semibold leading-6 text-blue-600 hover:text-blue-500">
+                Cadastre-se agora
+              </Link>
+            </p>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/Header/index.tsx (versão com 'fixed')
+// Endereço: apps/frontend/src/components/Header/index.tsx (versão com efeito de vidro)
 'use client';
 
 import Link from 'next/link';
@@ -14,11 +14,9 @@ export function Header() {
   const shouldHideButton = hideButtonOnRoutes.some(route => pathname.startsWith(route));
 
   return (
-    // MUDANÇA PRINCIPAL:
-    // 'fixed': Fixa o header no topo da tela, fora do fluxo de rolagem.
-    // 'w-full': Garante que ele ocupe toda a largura.
-    // 'bg-white/80 backdrop-blur-sm': Efeito de vidro fosco, muito moderno.
-    <header className="fixed top-0 w-full bg-white/80 shadow-sm z-50 backdrop-blur-sm">
+    // MUDANÇA: Voltamos a usar 'bg-white/80' e adicionamos 'backdrop-blur-sm'
+    // para restaurar o efeito de vidro fosco.
+    <header className="sticky top-0 w-full bg-white/80 shadow-sm z-50 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
         <Link href="/" className="-m-1.5 p-1.5">
           <span className="text-2xl font-bold text-gray-800 tracking-tight">Zello</span>

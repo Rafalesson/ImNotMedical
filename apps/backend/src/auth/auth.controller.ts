@@ -1,10 +1,11 @@
-// Endereço: apps/backend/src/auth/auth.controller.ts (versão final e correta)
+// Endereço: apps/backend/src/auth/auth.controller.ts (versão final com endpoint de reset)
 
 import { Body, Controller, Post, HttpCode, HttpStatus, UseGuards, Get, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { SignInDto } from './dto/signin.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto'; // Voltamos a importar o DTO
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto'; // 1. IMPORTAMOS NOSSO NOVO DTO
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +25,6 @@ export class AuthController {
 
   @Post('password/forgot')
   @HttpCode(HttpStatus.OK)
-  // Voltamos a usar o DTO para validação automática
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto,
   ): Promise<{ message: string }> {
@@ -32,5 +32,17 @@ export class AuthController {
     return {
       message: 'Se um usuário com este e-mail existir, um link de recuperação foi enviado.',
     };
+  }
+
+  // ==========================================================
+  // NOVO ENDPOINT PARA REDEFINIÇÃO DE SENHA
+  // ==========================================================
+  @Post('password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.authService.resetPassword(resetPasswordDto);
+    return { message: 'Senha redefinida com sucesso.' };
   }
 }

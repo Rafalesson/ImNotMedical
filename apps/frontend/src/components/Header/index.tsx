@@ -1,31 +1,29 @@
-// Endereço: apps/frontend/src/components/Header/index.tsx (versão com exceção de rota)
+// Endereço: apps/frontend/src/components/Header/index.tsx (versão com 'fixed')
 'use client';
 
 import Link from 'next/link';
 import { useContext } from 'react';
-import { usePathname } from 'next/navigation'; // 1. IMPORTAMOS o hook 'usePathname'
+import { usePathname } from 'next/navigation';
 import { AuthContext } from '@/contexts/AuthProvider';
 import { LogIn, LayoutDashboard } from 'lucide-react';
 
 export function Header() {
   const { isAuthenticated } = useContext(AuthContext);
-  const pathname = usePathname(); // 2. PEGAMOS O NOME DA ROTA ATUAL. Ex: '/', '/login', '/validar'
-
-  // 3. DEFINIMOS em quais rotas o botão NÃO deve aparecer.
-  // Usar um array torna fácil adicionar mais rotas no futuro, se necessário.
+  const pathname = usePathname();
   const hideButtonOnRoutes = ['/validar'];
-
-  // 4. VERIFICAMOS se a rota atual começa com algum dos caminhos da nossa lista de exceções.
   const shouldHideButton = hideButtonOnRoutes.some(route => pathname.startsWith(route));
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    // MUDANÇA PRINCIPAL:
+    // 'fixed': Fixa o header no topo da tela, fora do fluxo de rolagem.
+    // 'w-full': Garante que ele ocupe toda a largura.
+    // 'bg-white/80 backdrop-blur-sm': Efeito de vidro fosco, muito moderno.
+    <header className="fixed top-0 w-full bg-white/80 shadow-sm z-50 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
         <Link href="/" className="-m-1.5 p-1.5">
           <span className="text-2xl font-bold text-gray-800 tracking-tight">Zello</span>
         </Link>
 
-        {/* 5. ADICIONAMOS A CONDIÇÃO: só renderizamos o 'div' do botão se 'shouldHideButton' for falso. */}
         {!shouldHideButton && (
           <div>
             {isAuthenticated ? (
@@ -47,7 +45,7 @@ export function Header() {
             )}
           </div>
         )}
-
+        
       </nav>
     </header>
   );

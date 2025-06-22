@@ -1,52 +1,41 @@
-// Endereço: apps/frontend/src/app/dashboard/page.tsx (versão final após refatoração para middleware)
-'use client';
+// Endereço: apps/frontend/src/app/dashboard/page.tsx (versão final com React Query)
+'use client'; // 1. TRANSFORMAMOS A PÁGINA EM UM CLIENT COMPONENT
 
-// O 'useContext' e 'useRouter' foram removidos, pois não são mais necessários para a lógica de autenticação aqui.
-import { useState, useEffect } from 'react';
-import { PlusCircle } from 'lucide-react';
-import { api } from '@/services/api';
 import Link from 'next/link';
+import { PlusCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query'; // 2. IMPORTAMOS O useQuery
+import { api } from '@/services/api'; // Importamos nossa instância do axios
+import { CertificatesListSkeleton } from './certificates-list-skeleton'; // Reutilizamos nosso esqueleto
 
-// Definimos o tipo para o atestado para manter o código organizado.
+// Tipagem para os dados que esperamos
 type Certificate = {
   id: string;
   purpose: string;
   issueDate: string;
-  // Adicione outros campos que a API retornar, se necessário.
+  patient: {
+    patientProfile: {
+      name: string;
+    } | null;
+  } | null;
+};
+
+// Função que busca os dados, agora será chamada pelo React Query
+const fetchCertificates = async (): Promise<Certificate[]> => {
+  const { data } = await api.get('/certificates/my-certificates');
+  return data;
 };
 
 export default function DashboardPage() {
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  // Podemos adicionar um estado de loading para os dados da página, se quisermos.
-  const [isLoading, setIsLoading] = useState(true);
-
-  // REMOVIDO: O 'useEffect' que verificava a autenticação e redirecionava. O middleware agora faz isso.
-
-  // O componente agora foca apenas em buscar seus próprios dados e renderizar a UI.
-  useEffect(() => {
-    async function fetchCertificates() {
-      setIsLoading(true);
-      try {
-        const response = await api.get('/certificates/my-certificates');
-        setCertificates(response.data);
-      } catch (error) {
-        // Agora que temos um tratador de erro global, podemos pensar em como
-        // lidar com erros de fetch de dados específicos da página.
-        // Por enquanto, um log de erro é suficiente.
-        console.error("Erro ao buscar atestados:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchCertificates();
-  }, []); // A lista de dependências está vazia, pois este fetch só precisa rodar uma vez.
-
-  // REMOVIDO: A verificação 'if (!isAuthenticated) { return null; }'. O middleware garante que nunca chegaremos aqui sem autenticação.
-  
-  // Poderíamos mostrar um spinner enquanto os dados da página carregam.
-  if (isLoading) {
-    return <div>Carregando informações do dashboard...</div>;
-  }
+  // 3. A MÁGICA DO REACT QUERY
+  // Ele nos dá o estado de carregamento, erros e os dados, tudo em uma linha.
+  const { 
+    data: certificates, 
+    isLoading, 
+    isError 
+  } = useQuery<Certificate[]>({
+    queryKey: ['certificates'], // Uma chave única para esta busca de dados
+    queryFn: fetchCertificates, // A função que ele deve executar
+  });
 
   return (
     <div>
@@ -54,6 +43,7 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
       </div>
       
+      {/* Os cards estáticos continuam os mesmos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Link href="/dashboard/atestados/novo" className="h-full">
           <div className="p-6 bg-white rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 h-full">
@@ -71,20 +61,34 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* 4. RENDERIZAÇÃO CONDICIONAL BASEADA NOS ESTADOS DO REACT QUERY */}
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Atestados Emitidos Recentemente</h2>
-        <div className="space-y-4">
-          {certificates.length > 0 ? (
-            certificates.map(cert => (
-              <div key={cert.id} className="p-2 border-b">
-                {cert.purpose} - {new Date(cert.issueDate).toLocaleDateString()}
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">Nenhum atestado emitido recentemente.</p>
-          )}
-        </div>
+        
+        {isLoading && <CertificatesListSkeleton />}
+
+        {isError && <p className="text-red-500">Ocorreu um erro ao buscar os atestados.</p>}
+
+        {!isLoading && !isError && (
+          <div className="space-y-2">
+            {certificates && certificates.length > 0 ? (
+              certificates.map(cert => (
+                <div key={cert.id} className="p-3 border-b last:border-b-0 hover:bg-gray-50 rounded-md">
+                  <p className="font-semibold text-gray-800">
+                    {cert.patient?.patientProfile?.name || 'Paciente não identificado'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Emitido em: {new Date(cert.issueDate).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 p-3">Nenhum atestado emitido recentemente.</p>
+            )}
+          </div>
+        )}
       </div>
+      
     </div>
   );
 }

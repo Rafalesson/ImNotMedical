@@ -1,4 +1,5 @@
-// apps/backend/src/user/dto/create-user.dto.ts (versão final completa)
+// Endereço: apps/backend/src/user/dto/create-user.dto.ts (versão final corrigida)
+
 import {
   IsEmail,
   IsString,
@@ -7,48 +8,42 @@ import {
   IsEnum,
   IsOptional,
   IsDateString,
+  ValidateIf,
 } from 'class-validator';
-
-enum UserRole {
-  DOCTOR = 'DOCTOR',
-  PATIENT = 'PATIENT',
-}
+import { Role, Sex } from '@prisma/client'; // 1. IMPORTAMOS OS ENUMS GERADOS PELO PRISMA
 
 export class CreateUserDto {
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
   @IsString()
-  @MinLength(8, { message: 'A senha deve ter pelo menos 8 caracteres' })
+  @MinLength(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
   password: string;
 
-  @IsEnum(UserRole, { message: 'O cargo deve ser DOCTOR ou PATIENT' })
-  role: UserRole;
+  @IsEnum(Role, { message: 'O cargo deve ser DOCTOR ou PATIENT' })
+  role: Role; // 2. AGORA USAMOS O TIPO 'Role'
 
   @IsString()
   @IsNotEmpty()
   name: string;
-
-  // --- Novos campos de perfil adicionados como opcionais ---
-
+  
   @IsOptional()
   @IsString()
+  phone?: string;
+
+  // --- CAMPOS DE DOUTOR (só são obrigatórios se role === 'DOCTOR') ---
+  @ValidateIf(o => o.role === Role.DOCTOR)
+  @IsNotEmpty({ message: 'CRM é obrigatório para médicos.'})
   crm?: string;
 
   @IsOptional()
   @IsString()
   specialty?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @IsOptional()
-  @IsString()
+  
+  // --- CAMPOS DE PACIENTE (só são obrigatórios se role === 'PATIENT') ---
+  @ValidateIf(o => o.role === Role.PATIENT)
+  @IsNotEmpty({ message: 'CPF é obrigatório para pacientes.'})
   cpf?: string;
 
   @IsOptional()
@@ -56,6 +51,35 @@ export class CreateUserDto {
   dateOfBirth?: string;
   
   @IsOptional()
+  @IsEnum(Sex, { message: 'O sexo deve ser MALE, FEMALE ou OTHER' })
+  sex?: Sex; // 3. AGORA USAMOS O TIPO 'Sex'
+
+  // --- 4. CAMPOS DE ENDEREÇO ESTRUTURADO (OPCIONAIS) ---
+  @IsOptional()
   @IsString()
-  sex?: string;
+  street?: string;
+
+  @IsOptional()
+  @IsString()
+  number?: string;
+  
+  @IsOptional()
+  @IsString()
+  complement?: string;
+
+  @IsOptional()
+  @IsString()
+  neighborhood?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  zipCode?: string;
 }

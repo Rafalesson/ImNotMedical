@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/Header/index.tsx (versão com efeito de vidro)
+// Endereço: apps/frontend/src/components/Header/index.tsx (versão atualizada e mais robusta)
 'use client';
 
 import Link from 'next/link';
@@ -10,12 +10,18 @@ import { LogIn, LayoutDashboard } from 'lucide-react';
 export function Header() {
   const { isAuthenticated } = useContext(AuthContext);
   const pathname = usePathname();
-  const hideButtonOnRoutes = ['/validar'];
+
+  const hideButtonOnRoutes = [
+    '/validar', 
+    '/recuperar-senha', 
+    '/redefinir-senha',
+    '/cadastro' 
+  ];
+
+  // A lógica agora usa 'startsWith' para também cobrir sub-rotas como '/cadastro/medico'
   const shouldHideButton = hideButtonOnRoutes.some(route => pathname.startsWith(route));
 
   return (
-    // MUDANÇA: Voltamos a usar 'bg-white/80' e adicionamos 'backdrop-blur-sm'
-    // para restaurar o efeito de vidro fosco.
     <header className="sticky top-0 w-full bg-white/80 shadow-sm z-50 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
         <Link href="/" className="-m-1.5 p-1.5">

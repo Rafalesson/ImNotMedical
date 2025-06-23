@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/app/dashboard/page.tsx (versão final com React Query)
+// Endereço: apps/frontend/src/app/dashboard/page.tsx 
 'use client'; // 1. TRANSFORMAMOS A PÁGINA EM UM CLIENT COMPONENT
 
 import Link from 'next/link';
@@ -6,6 +6,7 @@ import { PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query'; // 2. IMPORTAMOS O useQuery
 import { api } from '@/services/api'; // Importamos nossa instância do axios
 import { CertificatesListSkeleton } from './certificates-list-skeleton'; // Reutilizamos nosso esqueleto
+import { Header } from '@/components/Header';
 
 // Tipagem para os dados que esperamos
 type Certificate = {
@@ -38,7 +39,8 @@ export default function DashboardPage() {
   });
 
   return (
-    <div>
+    <div>      
+      {/* 4. TÍTULO DO DASHBOARD */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
       </div>

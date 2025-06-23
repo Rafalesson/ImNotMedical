@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/user/user.service.ts (versão final corrigida)
+// Endereço: apps/backend/src/user/user.service.ts (versão final e corrigida)
 
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,7 +11,7 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    // Desestruturamos todos os campos do DTO, incluindo o novo endereço
+    // Desestruturamos todos os campos do DTO, incluindo o novo endereço estruturado
     const {
       email, password, role, name, phone,
       crm, specialty,
@@ -21,13 +21,12 @@ export class UserService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Verificamos se já existe um usuário com este e-mail
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new BadRequestException('Um usuário com este e-mail já existe.');
     }
 
-    // A criação do endereço agora é um objeto aninhado
+    // Preparamos os dados do endereço para serem criados de forma aninhada
     const addressData = (street && number && neighborhood && city && state && zipCode) ? {
       street, number, complement, neighborhood, city, state, zipCode
     } : undefined;
@@ -36,30 +35,30 @@ export class UserService {
       data: {
         email,
         password: hashedPassword,
-        role, // O DTO já garante que este é um Enum 'Role'
+        role,
         phone,
+        // CORREÇÃO PRINCIPAL AQUI:
+        // A criação do perfil agora também cria o endereço de forma aninhada, se os dados existirem.
         doctorProfile: role === Role.DOCTOR ? {
           create: {
             name,
-            crm: crm || '', // Garante que não seja undefined
+            crm: crm || '',
             specialty,
             phone,
-            // Conecta ou cria o endereço se os dados foram fornecidos
             ...(addressData && { address: { create: addressData } })
           },
         } : undefined,
         patientProfile: role === Role.PATIENT ? {
           create: {
             name,
-            cpf: cpf || '', // Garante que não seja undefined
+            cpf: cpf || '',
             dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : new Date(),
-            sex, // O DTO já garante que este é um Enum 'Sex'
+            sex,
             phone,
             ...(addressData && { address: { create: addressData } })
           },
         } : undefined,
       },
-      // Incluímos os perfis e endereços na resposta para confirmação
       include: {
         doctorProfile: { include: { address: true } },
         patientProfile: { include: { address: true } }
@@ -74,7 +73,7 @@ export class UserService {
     return this.prisma.user.findUnique({
       where: { email },
       include: {
-        doctorProfile: { include: { address: true } }, // Incluímos o endereço aqui também
+        doctorProfile: { include: { address: true } },
         patientProfile: { include: { address: true } },
       },
     });

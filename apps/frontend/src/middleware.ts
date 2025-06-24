@@ -1,40 +1,66 @@
-// Endereço: apps/frontend/src/middleware.ts
+// Endereço: apps/frontend/src/middleware.ts (versão final com tratamento de erro)
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-// 1. A função principal do middleware
-export function middleware(request: NextRequest) {
-  // 2. Pegamos o token de autenticação dos cookies da requisição
+// Função para obter a chave secreta de forma segura
+function getJwtSecretKey() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    // Este erro acontecerá no servidor se a variável de ambiente não for definida
+    throw new Error('JWT_SECRET não está definido nas variáveis de ambiente!');
+  }
+  return new TextEncoder().encode(secret);
+}
+
+export async function middleware(request: NextRequest) {
   const token = request.cookies.get('zello.token')?.value;
-
-  // 3. Pegamos a URL que o usuário está tentando acessar
   const { pathname } = request.nextUrl;
 
-  // 4. LÓGICA DE REDIRECIONAMENTO
-  // Se o usuário NÃO tem token e está tentando acessar qualquer rota dentro do /dashboard...
-  if (!token && pathname.startsWith('/dashboard')) {
-    // ...redirecionamos ele para a nova página de login.
-    // A 'request.url' é a URL base do seu site.
+  const protectedRoutes = ['/dashboard'];
+  const publicRoutes = ['/login', '/cadastro', '/recuperar-senha', '/redefinir-senha'];
+
+  // Se não há token e o usuário tenta acessar uma rota protegida...
+  if (!token && protectedRoutes.some(p => pathname.startsWith(p))) {
+    // ...redireciona para o login.
     return NextResponse.redirect(new URL('/login', request.url));
   }
+  
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, getJwtSecretKey());
+      const userRole = payload.role as string;
 
-  // Se o usuário TEM um token e está tentando acessar a página de login...
-  if (token && pathname === '/login') {
-    // ...redirecionamos ele para o dashboard, pois ele já está logado.
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+      // Se um PACIENTE tenta acessar o dashboard de médico...
+      if (userRole === 'PATIENT' && pathname.startsWith('/dashboard')) {
+        return NextResponse.redirect(new URL('/paciente/dashboard', request.url));
+      }
+
+      // Se um usuário JÁ LOGADO tenta acessar as páginas de login/cadastro...
+      if (publicRoutes.some(p => pathname.startsWith(p))) {
+        const dashboardUrl = userRole === 'DOCTOR' ? '/dashboard' : '/paciente/dashboard';
+        return NextResponse.redirect(new URL(dashboardUrl, request.url));
+      }
+
+    } catch (error) {
+      // ESTA É A MUDANÇA PRINCIPAL
+      // Se o token for inválido, redirecionamos para o login COM uma mensagem de erro.
+      console.error("Token inválido ou expirado:", error);
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('error', 'session_expired');
+      
+      const response = NextResponse.redirect(loginUrl);
+      // Limpa o cookie inválido do navegador do usuário
+      response.cookies.delete('zello.token');
+      return response;
+    }
   }
 
-  // 5. Se nenhuma das condições acima for atendida, a requisição continua normalmente.
   return NextResponse.next();
 }
 
-// 6. CONFIGURAÇÃO DO MATCHER
-// Isso diz ao middleware para rodar APENAS nas rotas que nos interessam.
-// Evita que ele rode em requisições de imagens, CSS, etc., melhorando a performance.
+// O matcher continua o mesmo, mas agora cobre todas as nossas rotas.
 export const config = {
-  matcher: [
-    '/dashboard/:path*', // Todas as rotas dentro de /dashboard
-    '/login',            // A rota de login
-  ],
+  matcher: ['/dashboard/:path*', '/paciente/dashboard/:path*', '/login', '/cadastro/:path*', '/recuperar-senha', '/redefinir-senha'],
 };

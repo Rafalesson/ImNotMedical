@@ -1,4 +1,5 @@
-// src/hooks/useCertificatePreview.ts
+// Endereço: apps/frontend/src/hooks/useCertificatePreview.ts (versão com erro detalhado)
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCertificateStore } from '@/stores/certificateStore';
@@ -11,7 +12,6 @@ export function useCertificatePreview() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Se não houver dados no armazém, redireciona de volta para o formulário.
     if (!formData) {
       router.replace('/dashboard/atestados/novo');
       return;
@@ -25,10 +25,26 @@ export function useCertificatePreview() {
         });
         const url = URL.createObjectURL(response.data);
         setPdfUrl(url);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao gerar preview do PDF:', error);
-        alert('Não foi possível gerar a pré-visualização.');
-        router.push('/dashboard/atestados/novo'); // Volta ao form em caso de erro
+        
+        // O erro do axios para 'blob' é um pouco diferente, precisamos ler a resposta
+        // como texto para ver a mensagem de erro JSON que o backend enviou.
+        if (error.response && error.response.data instanceof Blob) {
+          error.response.data.text().then((text: string) => {
+            try {
+              const parsedError = JSON.parse(text);
+              alert(`Erro: ${parsedError.message || 'Não foi possível gerar a pré-visualização.'}`);
+            } catch (e) {
+              alert('Não foi possível gerar a pré-visualização. Ocorreu um erro inesperado.');
+            }
+          });
+        } else {
+          const errorMessage = error.response?.data?.message || 'Não foi possível gerar a pré-visualização.';
+          alert(`Erro: ${errorMessage}`);
+        }
+
+        router.push('/dashboard/atestados/novo');
       } finally {
         setIsLoading(false);
       }
@@ -36,14 +52,12 @@ export function useCertificatePreview() {
 
     fetchPreview();
 
-    // Função de limpeza para evitar vazamento de memória no navegador
     return () => {
       if (pdfUrl) {
         URL.revokeObjectURL(pdfUrl);
       }
     };
-    // A lista de dependências agora é segura e não causa loops
-  }, [formData, router]);
+  }, [formData, router]); 
 
   return { isLoading, pdfUrl, formData };
 }

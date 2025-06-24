@@ -1,11 +1,10 @@
-// Endereço: apps/frontend/src/app/login/page.tsx (versão com links de cadastro e recuperação)
+// Endereço: apps/frontend/src/app/login/page.tsx (versão que lê erros da URL)
 'use client';
 
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react'; // Importamos useEffect
 import Link from 'next/link';
 import { AuthContext } from '@/contexts/AuthProvider';
-import { useRouter } from "next/navigation";
-import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation"; // Importamos useSearchParams
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,26 +14,25 @@ export default function LoginPage() {
 
   const { signIn } = useContext(AuthContext);
   const router = useRouter();
+  const searchParams = useSearchParams(); // Hook para ler os parâmetros da URL
+
+  // ESTE useEffect VERIFICA SE HÁ UMA MENSAGEM DE ERRO NA URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'session_expired') {
+      setError('Sua sessão expirou ou é inválida. Por favor, faça o login novamente.');
+    }
+  }, [searchParams]);
 
   async function handleSignIn(event: React.FormEvent) {
+    // ... a função handleSignIn continua a mesma
     event.preventDefault();
     setError(null);
     setIsLoading(true);
-
     try {
       await signIn({ email, password });
-      router.push('/dashboard');
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          setError('E-mail ou senha incorretos. Por favor, verifique suas credenciais.');
-        } else {
-          setError('Falha na comunicação com o servidor. Tente novamente mais tarde.');
-        }
-      } else {
-        setError('Ocorreu um erro inesperado. Por favor, contate o suporte.');
-        console.error("Erro desconhecido no login:", err);
-      }
+    } catch (err: any) {
+      setError('E-mail ou senha incorretos. Por favor, verifique suas credenciais.');
     } finally {
       setIsLoading(false);
     }
@@ -64,10 +62,6 @@ export default function LoginPage() {
                 <div>
                   <div className="flex items-center justify-between">
                     <label htmlFor="password" className="text-sm font-medium text-gray-700">Senha</label>
-                    
-                    {/* ======================================================================= */}
-                    {/* LINK DE RECUPERAÇÃO DE SENHA ADICIONADO AQUI                         */}
-                    {/* ======================================================================= */}
                     <div className="text-sm">
                       <Link href="/recuperar-senha" className="font-semibold text-blue-600 hover:text-blue-500">
                         Esqueceu a senha?
@@ -79,6 +73,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Este 'div' agora mostrará tanto erros de login quanto de sessão expirada */}
                 {error && (
                   <div className="rounded-md bg-red-50 p-4">
                     <p className="text-sm font-medium text-red-700">{error}</p>
@@ -93,10 +88,6 @@ export default function LoginPage() {
                   {isLoading ? 'Entrando...' : 'Entrar'}
                 </button>
             </form>
-            
-            {/* ======================================================================= */}
-            {/* LINK DE CADASTRO ADICIONADO AQUI                                        */}
-            {/* ======================================================================= */}
             <p className="mt-8 text-center text-sm text-gray-500">
               Não tem uma conta?{' '}
               <Link href="/cadastro" className="font-semibold leading-6 text-blue-600 hover:text-blue-500">

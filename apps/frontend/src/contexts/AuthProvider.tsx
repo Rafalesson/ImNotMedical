@@ -1,16 +1,16 @@
-// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão final com cookies)
+// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão com redirecionamento por papel)
 'use client';
 
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie'; // 1. IMPORTAMOS A BIBLIOTECA DE COOKIES
+import Cookies from 'js-cookie';
 
 interface User {
   userId: string;
   email: string;
   role: 'DOCTOR' | 'PATIENT';
-  name: string;
+  name: string; 
 }
 
 interface AuthContextType {
@@ -25,15 +25,13 @@ export const AuthContext = createContext({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const router = useRouter();
 
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    // 2. LEMOS O TOKEN DOS COOKIES, NÃO MAIS DO LOCALSTORAGE
     const token = Cookies.get('zello.token');
-
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       api.get('/auth/profile')
@@ -41,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(response.data);
         })
         .catch(() => {
-          Cookies.remove('zello.token'); // Limpa o cookie se for inválido
+          Cookies.remove('zello.token');
           setUser(null);
         })
         .finally(() => {
@@ -57,30 +55,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await api.post('/auth/login', { email, password });
       const { access_token } = data;
 
-      // 3. SALVAMOS O TOKEN NOS COOKIES
-      // O token irá expirar em 1 dia.
-      Cookies.set('zello.token', access_token, { expires: 1, path: '/' }); 
-
+      Cookies.set('zello.token', access_token, { expires: 7, path: '/' });
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
       const profileResponse = await api.get('/auth/profile');
-      setUser(profileResponse.data);
+      const loggedUser = profileResponse.data;
+      setUser(loggedUser);
+
+      // ==========================================================
+      // AQUI ESTÁ A NOVA LÓGICA DE REDIRECIONAMENTO INTELIGENTE
+      // ==========================================================
+      if (loggedUser.role === 'DOCTOR') {
+        router.push('/dashboard');
+      } else if (loggedUser.role === 'PATIENT') {
+        router.push('/paciente/dashboard');
+      } else {
+        // Um fallback, caso o 'role' não seja nenhum dos esperados
+        router.push('/');
+      }
 
     } catch (error) {
+      // O 'throw' garante que a página de login possa pegar o erro e mostrar a mensagem
       throw error;
     }
   }
 
   function signOut() {
-    // 4. REMOVEMOS O TOKEN DOS COOKIES AO DESLOGAR
     Cookies.remove('zello.token');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
-    router.push('/login'); 
+    router.push('/login');
   }
 
   if (loading) {
-    return null; 
+    return null;
   }
 
   return (

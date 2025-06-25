@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/certificate/certificate.service.ts (versão final corrigida)
+// Endereço: apps/backend/src/certificate/certificate.service.ts (versão corrigida)
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
@@ -20,21 +20,21 @@ export class CertificateService {
   ) {}
 
   private async prepareDataForPdf(dto: CreateCertificateDto, doctorId: string, certificateId: string): Promise<CertificateData> {
-    // 1. MUDANÇA NA BUSCA: Incluímos a relação de endereço para o médico e paciente
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
       include: { doctorProfile: { include: { address: true } } },
     });
+    
+    // MUDANÇA AQUI: Adicionamos a inclusão do endereço do paciente
     const patient = await this.prisma.user.findUnique({
       where: { id: dto.patientId },
       include: { patientProfile: { include: { address: true } } },
     });
 
     if (!doctor?.doctorProfile || !patient?.patientProfile) {
-      throw new NotFoundException('Perfil não encontrado.');
+      throw new NotFoundException('Perfil do médico ou do paciente não encontrado.');
     }
     
-    // 2. FORMATAÇÃO DO ENDEREÇO: Transformamos o objeto de endereço em uma string legível
     const doctorAddressObj = doctor.doctorProfile.address;
     const formattedDoctorAddress = doctorAddressObj
       ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.neighborhood}, ${doctorAddressObj.city} - ${doctorAddressObj.state}`
@@ -48,7 +48,7 @@ export class CertificateService {
       doctorName: doctor.doctorProfile.name,
       doctorCrm: doctor.doctorProfile.crm,
       doctorSpecialty: doctor.doctorProfile.specialty,
-      doctorAddress: formattedDoctorAddress, // <-- Usamos a string formatada
+      doctorAddress: formattedDoctorAddress,
       doctorPhone: doctor.doctorProfile.phone,
       patientName: patient.patientProfile.name,
       patientCpf: patient.patientProfile.cpf,
@@ -65,8 +65,7 @@ export class CertificateService {
     };
   }
 
-  // ... O resto do seu serviço (generateCertificatePdf, create, etc.) não precisa de mudanças ...
-  // ... pois eles dependem da função 'prepareDataForPdf' que acabamos de corrigir.
+  // O resto do serviço não precisa de mudanças...
   async generateCertificatePdf(dto: CreateCertificateDto, doctorId: string): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 'PREVIEW-ID');
     const html = this.templatesService.getPopulatedCertificateHtml(data);

@@ -1,15 +1,21 @@
-// src/patient/patient.controller.ts
+// Endereço: apps/backend/src/patient/patient.controller.ts (versão corrigida)
+
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('patients')
-@UseGuards(AuthGuard) // Protegendo todas as rotas de pacientes
 export class PatientController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(private readonly patientService: PatientService) { }
 
   @Get('search')
-  search(@Query('name') name: string) {
-    return this.patientService.search(name);
+  search(@Query('name') query: string) {
+    return this.patientService.search(query);
+  }
+
+  @Get('count')
+  getCount() {
+    return this.patientService.countAll();
   }
 }

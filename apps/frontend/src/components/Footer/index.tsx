@@ -1,13 +1,13 @@
-// src/components/Footer.tsx (versão com texto sempre centralizado)
+// Endereço: apps/frontend/src/components/Footer.tsx (Exemplo)
+
 export function Footer() {
-  const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
-      <div className="mx-auto max-w-7xl py-6 px-4 text-center text-xs text-gray-500">
-        <p>
-          &copy; {currentYear} | Todos os direitos reservados à Zello.
-        </p>
-      </div>
+    // Usamos a mesma variável CSS do Header para garantir a mesma altura (5rem)
+    // As classes flex e items-center o centralizam verticalmente.
+    <footer className="bg-white h-[var(--header-height)] flex items-center justify-center border-t">
+      <p className="text-sm text-gray-500">
+        &copy; {new Date().getFullYear()} Todos os direitos reservados à Zello.
+      </p>
     </footer>
   );
 }

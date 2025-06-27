@@ -1,27 +1,29 @@
-// src/app/dashboard/atestados/preview/page.tsx (versão final sem o botão de rascunho)
+// src/app/dashboard/atestados/preview/page.tsx (Refatorado com Context)
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { CheckCircle, XCircle, Loader2, Download, Home } from 'lucide-react';
-import { ValidationResult } from '@/components/ValidationResult'; // Supondo que você criou este componente
+import { useAttestation } from '@/contexts/AttestationContext'; // 1. Importa o nosso hook
 
 export default function PreviewPage() {
   const router = useRouter();
+  // 2. Puxa os dados e as funções do contexto
+  const { data: formData, clearData } = useAttestation(); 
+
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [finalCertificate, setFinalCertificate] = useState(null);
 
   const handleConfirmAndIssue = useCallback(async () => {
-    const savedDataString = sessionStorage.getItem('certificateFormData');
-    if (!savedDataString) {
+    // 3. A leitura do sessionStorage foi REMOVIDA. Os dados vêm do 'formData'.
+    if (!formData || !formData.patient) {
       alert('Não foi possível encontrar os dados do formulário. Por favor, tente novamente.');
       router.push('/dashboard/atestados/novo');
       return;
     }
-    const formData = JSON.parse(savedDataString);
     const dtoForCreation = {
       patientId: formData.patient.userId,
       purpose: formData.purpose,
@@ -32,23 +34,22 @@ export default function PreviewPage() {
     setIsSubmitting(true);
     try {
       const response = await api.post('/certificates', dtoForCreation);
-      setFinalCertificate(response.data); // Salva os dados do atestado final
-      sessionStorage.removeItem('certificateFormData');
+      setFinalCertificate(response.data);
+      clearData(); // 4. Limpa os dados do contexto após o sucesso!
     } catch (error) {
       console.error('Erro ao emitir atestado:', error);
       alert('Falha ao emitir o atestado final.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [router]);
+  }, [formData, router, clearData]);
 
   useEffect(() => {
-    const savedDataString = sessionStorage.getItem('certificateFormData');
-    if (!savedDataString) {
+    // 5. A leitura do sessionStorage foi REMOVIDA.
+    if (!formData || !formData.patient) {
       router.replace('/dashboard/atestados/novo');
       return;
     }
-    const formData = JSON.parse(savedDataString);
     const dtoForPreview = {
       patientId: formData.patient.userId,
       purpose: formData.purpose,
@@ -73,9 +74,11 @@ export default function PreviewPage() {
       }
     };
     fetchPreview();
-  }, [router]);
+  }, [formData, router]);
 
   const handleEdit = () => {
+    // 6. Esta função agora funciona como esperado sem nenhuma mudança!
+    // Ela simplesmente navega, e o formulário vai ler os dados do contexto.
     router.push('/dashboard/atestados/novo');
   };
 
@@ -120,7 +123,6 @@ export default function PreviewPage() {
         >
           <XCircle className="mr-2" size={20}/> Editar
         </button>
-        {/* O BOTÃO DE BAIXAR RASCUNHO FOI REMOVIDO DAQUI */}
         <button
           onClick={handleConfirmAndIssue}
           disabled={isSubmitting || isLoading}

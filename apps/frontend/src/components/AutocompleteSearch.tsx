@@ -1,15 +1,20 @@
-// Endereço: apps/frontend/src/components/AutocompleteSearch.tsx (versão com debouncing)
+// Endereço: apps/frontend/src/components/AutocompleteSearch.tsx (VERSÃO FINAL E CORRIGIDA)
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 
+// Tipagem permanece a mesma
 type Option = { id: string | number; [key: string]: any; };
 
+// 1. ALTERAÇÃO NAS PROPS:
+//    - Trocamos 'initialQuery' por 'initialValue' para aceitar um objeto.
+//    - Adicionamos 'displayValue' para saber como exibir o objeto.
 type AutocompleteSearchProps<T extends Option> = {
   label: string;
   placeholder: string;
-  initialQuery?: string;
+  initialValue?: T | null; // <-- MUDOU DE initialQuery: string
+  displayValue: (option: T) => string; // <-- ADICIONADO
   onSearch: (query: string) => Promise<T[]>;
   renderOption: (option: T) => JSX.Element;
   onSelect: (option: T | null) => void;
@@ -18,63 +23,74 @@ type AutocompleteSearchProps<T extends Option> = {
 export function AutocompleteSearch<T extends Option>({
   label,
   placeholder,
-  initialQuery = '',
+  initialValue = null, // <-- MUDOU
+  displayValue, // <-- ADICIONADO
   onSearch,
   renderOption,
   onSelect,
 }: AutocompleteSearchProps<T>) {
-  const [query, setQuery] = useState(initialQuery);
+
+  // 2. ALTERAÇÃO NO ESTADO INICIAL:
+  //    - O 'query' (texto do input) agora é inicializado a partir do objeto 'initialValue'.
+  const [query, setQuery] = useState(initialValue ? displayValue(initialValue) : '');
   const [results, setResults] = useState<T[]>([]);
   const [isFocused, setIsFocused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Adicionamos estado de loading
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Este useEffect agora cuida da lógica de busca com "debouncing"
+  // 3. ADIÇÃO DE NOVO USEEFFECT:
+  //    - Este hook garante que, se o valor inicial mudar, o texto no input também mude.
+  //    - Essencial para o nosso Context funcionar 100%.
   useEffect(() => {
-    // Se o campo estiver vazio, não fazemos nada aqui. A busca inicial é feita no onFocus.
-    if (query.trim() === '' && results.length > 0) {
-      setResults([]); // Limpa os resultados se o usuário apagar o texto
+    setQuery(initialValue ? displayValue(initialValue) : '');
+  }, [initialValue, displayValue]);
+
+
+  // O useEffect de busca com debouncing continua o mesmo, mas ajustamos uma condição
+  useEffect(() => {
+    // Se o texto do input for igual ao que deveria ser exibido pelo valor inicial, não busca.
+    if (initialValue && query === displayValue(initialValue)) {
+        setResults([]);
+        return;
+    }
+
+    if (query.trim() === '') {
+      setResults([]);
       return;
     }
 
-    // Se o texto for o mesmo do valor inicial, não fazemos a busca ainda
-    if (query === initialQuery && initialQuery !== '') {
-      return;
-    }
-
-    setIsLoading(true);
-    // Criamos um "timer". A busca só acontece 300ms depois que o usuário para de digitar.
     const timerId = setTimeout(() => {
+      setIsLoading(true);
       onSearch(query).then(searchResult => {
         setResults(searchResult);
         setIsLoading(false);
       });
     }, 300);
 
-    // Esta função de limpeza é essencial: se o usuário digitar outra letra,
-    // o timer anterior é cancelado e um novo é criado.
     return () => {
       clearTimeout(timerId);
-      setIsLoading(false);
+      setIsLoading(false); // Garante que o loading para se o componente for desmontado
     };
-  }, [query, initialQuery, onSearch]);
+  }, [query, initialValue, displayValue, onSearch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    onSelect(null); // Limpa a seleção anterior ao digitar
+    // Se o usuário apaga o texto, a seleção é invalidada
+    if (e.target.value === '') {
+        onSelect(null);
+    }
   };
 
   const handleSelect = (option: T) => {
-    const mainText = option.name || option.code; 
-    setQuery(mainText);
+    // 4. ALTERAÇÃO NO HANDLESELECT:
+    //    - Usa a função 'displayValue' para garantir consistência.
+    setQuery(displayValue(option));
     onSelect(option);
     setResults([]);
     setIsFocused(false);
   };
   
-  // Função para buscar os pacientes recentes quando o campo recebe foco
   const handleFocus = async () => {
     setIsFocused(true);
-    // Se o campo estiver vazio, busca os recentes.
     if(query.trim() === '') {
       setIsLoading(true);
       const searchResult = await onSearch('');
@@ -83,6 +99,7 @@ export function AutocompleteSearch<T extends Option>({
     }
   }
 
+  // O JSX/HTML continua o mesmo
   return (
     <div className="relative" onBlur={() => setTimeout(() => setIsFocused(false), 200)}>
       <label htmlFor={label} className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
@@ -93,14 +110,17 @@ export function AutocompleteSearch<T extends Option>({
           id={label}
           value={query}
           onChange={handleInputChange}
-          onFocus={handleFocus} // Usamos a nova função de foco
+          onFocus={handleFocus}
           className="w-full rounded-md border border-gray-300 p-3 pl-10 text-gray-900"
           placeholder={placeholder}
           autoComplete="off"
         />
-        {/* Podemos adicionar um spinner de loading aqui se quisermos */}
       </div>
-      {isFocused && results.length > 0 && (
+      {isFocused && (isLoading ? (
+            <div className="absolute z-20 w-full mt-1 p-4 bg-white border border-gray-300 rounded-md shadow-lg text-center text-gray-500">
+                Carregando...
+            </div>
+        ) : results.length > 0 && (
         <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
           {results.map((option) => (
             <li key={option.id} onMouseDown={() => handleSelect(option)}>
@@ -108,7 +128,7 @@ export function AutocompleteSearch<T extends Option>({
             </li>
           ))}
         </ul>
-      )}
+      ))}
     </div>
   );
 }

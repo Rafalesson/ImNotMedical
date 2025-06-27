@@ -1,34 +1,20 @@
-// src/components/CertificateForm.tsx (versão final com sessionStorage)
+// apps/frontend/src/components/CertificateForm.tsx (Refatorado com Context)
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { AutocompleteSearch } from './AutocompleteSearch';
+import { useAttestation } from '@/contexts/AttestationContext'; // 1. Importa o nosso hook
 
 type Patient = { id: string; name: string; cpf: string; userId: string; };
 type Cid = { id: string; code: string; description: string; };
 
 export function CertificateForm() {
   const router = useRouter();
+  // 2. Lê o estado e a função de atualização diretamente do contexto
+  const { data, setData } = useAttestation();
 
-  // Estados locais para controlar o formulário
-  const [purpose, setPurpose] = useState('');
-  const [durationInDays, setDurationInDays] = useState<number | ''>(1);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedCid, setSelectedCid] = useState<Cid | null>(null);
-  
-  // Este useEffect lê os dados do sessionStorage quando o componente carrega
-  useEffect(() => {
-    const savedData = sessionStorage.getItem('certificateFormData');
-    if (savedData) {
-      const formData = JSON.parse(savedData);
-      setPurpose(formData.purpose);
-      setDurationInDays(formData.durationInDays);
-      setSelectedPatient(formData.patient);
-      setSelectedCid(formData.cid);
-    }
-  }, []);
+  // 3. O useEffect que lia do sessionStorage foi REMOVIDO.
 
   const searchPatients = async (query: string): Promise<Patient[]> => {
     try {
@@ -39,8 +25,11 @@ export function CertificateForm() {
       return [];
     }
   };
-  const handleSelectPatient = (patient: Patient) => setSelectedPatient(patient);
-  
+
+  const handleSelectPatient = (patient: Patient) => {
+    setData({ ...data, patient });
+  };
+
   const searchCids = async (query: string): Promise<Cid[]> => {
     try {
       const response = await api.get(`/cids/search?query=${query}`);
@@ -50,24 +39,20 @@ export function CertificateForm() {
       return [];
     }
   };
-  const handleSelectCid = (cid: Cid) => setSelectedCid(cid);
+
+  const handleSelectCid = (cid: Cid) => {
+    setData({ ...data, cid });
+  };
 
   function handlePreview(event: React.FormEvent) {
     event.preventDefault();
-    if (!selectedPatient) {
+    if (!data.patient) {
       alert('Por favor, selecione um paciente da lista.');
       return;
     }
-    
-    const dataToSave = {
-      patient: selectedPatient,
-      cid: selectedCid,
-      purpose,
-      durationInDays,
-    };
 
-    // Salva os dados no sessionStorage e navega
-    sessionStorage.setItem('certificateFormData', JSON.stringify(dataToSave));
+    // 4. A lógica de salvar no sessionStorage foi REMOVIDA.
+    // Os dados já estão no contexto, basta navegar.
     router.push('/dashboard/atestados/preview');
   }
 
@@ -78,18 +63,20 @@ export function CertificateForm() {
         placeholder="Digite o nome do paciente..."
         onSearch={searchPatients}
         onSelect={handleSelectPatient}
-        initialQuery={selectedPatient?.name || ''}
+        // 5. O formulário agora lê os valores direto do contexto
+        initialValue={data.patient} 
         renderOption={(patient) => (
           <div className="p-3 cursor-pointer hover:bg-gray-100">
             <p className="font-semibold text-gray-900">{patient.name}</p>
             <p className="text-sm text-gray-500">CPF: {patient.cpf}</p>
           </div>
         )}
+        displayValue={(patient) => patient.name}
       />
 
       <div>
         <label htmlFor="purpose" className="mb-2 block text-sm font-medium text-gray-700">Finalidade do Atestado</label>
-        <textarea id="purpose" rows={4} value={purpose} onChange={(e) => setPurpose(e.target.value)} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required />
+        <textarea id="purpose" rows={4} value={data.purpose} onChange={(e) => setData({ ...data, purpose: e.target.value })} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required />
       </div>
 
       <AutocompleteSearch<Cid>
@@ -97,18 +84,19 @@ export function CertificateForm() {
         placeholder="Digite o código ou descrição..."
         onSearch={searchCids}
         onSelect={handleSelectCid}
-        initialQuery={selectedCid ? `${selectedCid.code} - ${selectedCid.description}` : ''}
+        initialValue={data.cid}
         renderOption={(cid) => (
           <div className="p-3 cursor-pointer hover:bg-gray-100">
             <p className="font-semibold text-gray-900">{cid.code}</p>
             <p className="text-sm text-gray-500">{cid.description}</p>
           </div>
         )}
+        displayValue={(cid) => `${cid.code} - ${cid.description}`}
       />
-      
+
       <div>
         <label htmlFor="durationInDays" className="mb-2 block text-sm font-medium text-gray-700">Duração do Afastamento (em dias)</label>
-        <input type="number" id="durationInDays" value={durationInDays} onChange={(e) => setDurationInDays(e.target.value === '' ? '' : Number(e.target.value))} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required/>
+        <input type="number" id="durationInDays" value={data.durationInDays} onChange={(e) => setData({ ...data, durationInDays: e.target.value === '' ? '' : Number(e.target.value) })} className="w-full rounded-md border border-gray-300 p-3 text-gray-900" required/>
       </div>
 
       <div className="flex justify-end">

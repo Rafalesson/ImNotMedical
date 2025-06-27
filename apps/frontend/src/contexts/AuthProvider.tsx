@@ -62,9 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const loggedUser = profileResponse.data;
       setUser(loggedUser);
 
-      // ==========================================================
-      // AQUI ESTÁ A NOVA LÓGICA DE REDIRECIONAMENTO INTELIGENTE
-      // ==========================================================
       if (loggedUser.role === 'DOCTOR') {
         router.push('/dashboard');
       } else if (loggedUser.role === 'PATIENT') {

@@ -38,8 +38,8 @@ export function ClassicTemplate() {
           habituais por um período de <strong> {durationInDays} ({'um'})</strong> dia(s), 
           a contar de <strong>{startDate}</strong>.
         </p>
-        {/* CORREÇÃO AQUI: Adicionamos a descrição do CID */}
-        {cid && <p className={styles.cidLine}>CID-10: {cid.code} - {cid.description}</p>}
+        <p className={styles.detailLine}><strong>Finalidade:</strong> {purpose}</p>
+        {cid && <p className={styles.detailLine}>CID-10: {cid.code} - {cid.description}</p>}
       </main>
 
       {/* CORREÇÃO AQUI: A estrutura do rodapé agora é idêntica à do default */}

@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/certificate/certificate.controller.ts (Versão de Produção)
+// Endereço: apps/backend/src/certificate/certificate.controller.ts (Versão Corrigida)
 
 import { Controller, Post, Body, UseGuards, Request, Get, Res, Param, Header, InternalServerErrorException } from '@nestjs/common';
 import { CertificateService } from './certificate.service';
@@ -21,7 +21,7 @@ export class CertificateController {
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('DOCTOR')
- create(@Body() createCertificateDto: CreateCertificateDto, @Request() req) {
+  create(@Body() createCertificateDto: CreateCertificateDto, @Request() req) {
     return this.certificateService.create(createCertificateDto, req.user.id); 
   }
 
@@ -35,6 +35,6 @@ export class CertificateController {
   @Get('my-certificates')
   @UseGuards(AuthGuard)
   findAllByDoctor(@Request() req) {
-    return this.certificateService.findAllByDoctor(req.user.userId);
+    return this.certificateService.findAllByDoctor(req.user.id);
   }
 }

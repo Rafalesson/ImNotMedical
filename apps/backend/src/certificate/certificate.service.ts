@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/certificate/certificate.service.ts (Versão de Produção)
+// Endereço: apps/backend/src/certificate/certificate.service.ts (Versão Final e Corrigida)
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -64,15 +64,13 @@ export class CertificateService {
     };
   }
 
-  // Gera um PDF para preview, sem salvar nada no banco
   async generateCertificatePdf(dto: CreateCertificateDto, doctorId: string): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 'PREVIEW-ID');
     const html = this.templatesService.getPopulatedCertificateHtml(data, dto.templateId);
     return this.pdfService.generatePdfFromHtml(html);
   }
 
-  // Cria o atestado definitivo
- async create(createCertificateDto: CreateCertificateDto, doctorId: string) {
+  async create(createCertificateDto: CreateCertificateDto, doctorId: string) {
     const certificateRecord = await this.prisma.medicalCertificate.create({
       data: {
         purpose: createCertificateDto.purpose,
@@ -81,13 +79,8 @@ export class CertificateService {
         cidCode: createCertificateDto.cidCode,
         observations: createCertificateDto.observations,
         templateId: createCertificateDto.templateId || 'default',
-        
-        doctor: {
-          connect: { id: doctorId }
-        },
-        patient: {
-          connect: { id: createCertificateDto.patientId }
-        }
+        doctor: { connect: { id: doctorId } },
+        patient: { connect: { id: createCertificateDto.patientId } }
       },
     });
 
@@ -108,11 +101,19 @@ export class CertificateService {
     });
   }
 
+  // --- GARANTA QUE SUA FUNÇÃO ESTEJA ASSIM ---
   findAllByDoctor(doctorId: string) {
+    // A cláusula 'where' garante a filtragem pelo ID do médico logado
     return this.prisma.medicalCertificate.findMany({
-      where: { doctorId },
+      where: { doctorId: doctorId },
       orderBy: { issueDate: 'desc' },
-      include: { patient: { include: { patientProfile: true } } },
+      include: { 
+        patient: { 
+          include: { 
+            patientProfile: true 
+          } 
+        } 
+      },
       take: 5,
     });
   }

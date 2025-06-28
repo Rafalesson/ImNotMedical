@@ -8,7 +8,6 @@ export class PatientService {
   constructor(private prisma: PrismaService) {}
 
   async search(name: string | undefined) {
-    // A lógica para busca vazia (retornar recentes).
     if (!name || name.trim() === '') {
       return this.prisma.patientProfile.findMany({
         orderBy: {
@@ -17,7 +16,14 @@ export class PatientService {
           },
         },
         take: 5,
-        select: { id: true, name: true, cpf: true, userId: true },
+        select: { 
+          id: true, 
+          name: true, 
+          cpf: true, 
+          userId: true,
+          dateOfBirth: true,
+          sex: true 
+        },
       });
     }
 
@@ -32,7 +38,14 @@ export class PatientService {
       orderBy: {
         name: 'asc', 
       },
-      select: { id: true, name: true, cpf: true, userId: true },
+      select: { 
+        id: true, 
+        name: true, 
+        cpf: true, 
+        userId: true,
+        dateOfBirth: true,
+        sex: true  
+      },
       take: 10,
     });
   }

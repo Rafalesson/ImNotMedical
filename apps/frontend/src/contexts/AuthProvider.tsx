@@ -1,16 +1,44 @@
-// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (versão com redirecionamento por papel)
+// Endereço: apps/frontend/src/contexts/AuthProvider.tsx (Com Logs para Depuração)
 'use client';
 
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
+// As interfaces que definimos anteriormente (estão corretas)
+interface Address {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+interface DoctorProfile {
+  name: string;
+  crm: string;
+  specialty?: string;
+  phone?: string;
+  address?: Address;
+}
+
+interface PatientProfile {
+  name: string;
+  cpf: string;
+  dateOfBirth: string;
+  sex?: 'MALE' | 'FEMALE' | 'OTHER';
+  phone?: string;
+  address?: Address;
+}
+
 interface User {
-  userId: string;
+  id: string;
   email: string;
   role: 'DOCTOR' | 'PATIENT';
-  name: string; 
+  doctorProfile?: DoctorProfile;
+  patientProfile?: PatientProfile;
 }
 
 interface AuthContextType {
@@ -36,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       api.get('/auth/profile')
         .then(response => {
+          // LOG DE DEPURAÇÃO 1: O que recebemos ao recarregar a página
+          console.log('[AuthProvider - useEffect] Perfil recebido do backend:', response.data);
           setUser(response.data);
         })
         .catch(() => {
@@ -59,6 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
       const profileResponse = await api.get('/auth/profile');
+      
+      // LOG DE DEPURAÇÃO 2: O que recebemos logo após o login
+      console.log('[AuthProvider - signIn] Perfil recebido do backend:', profileResponse.data);
+      
       const loggedUser = profileResponse.data;
       setUser(loggedUser);
 
@@ -67,12 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (loggedUser.role === 'PATIENT') {
         router.push('/paciente/dashboard');
       } else {
-        // Um fallback, caso o 'role' não seja nenhum dos esperados
         router.push('/');
       }
 
     } catch (error) {
-      // O 'throw' garante que a página de login possa pegar o erro e mostrar a mensagem
       throw error;
     }
   }
@@ -94,3 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};

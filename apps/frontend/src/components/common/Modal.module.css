@@ -1,0 +1,9 @@
+/* Endereço: apps/frontend/src/components/common/Modal.module.css */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(17, 24, 39, 0.4); /* bg-gray-900 com 40% de opacidade */
+    -webkit-backdrop-filter: blur(4px); /* blur-sm para Safari */
+    backdrop-filter: blur(4px); /* blur-sm */
+}

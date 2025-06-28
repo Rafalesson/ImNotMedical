@@ -1,10 +1,10 @@
-// Endereço: apps/backend/src/certificate/certificate.service.ts (versão corrigida)
+// Endereço: apps/backend/src/certificate/certificate.service.ts (Versão de Produção)
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { TemplatesService } from 'src/templates/templates.service';
+import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { CertificateData } from './certificate.types';
 import { calculateAge, numberToWords } from 'src/utils';
 import * as fs from 'fs';
@@ -25,7 +25,6 @@ export class CertificateService {
       include: { doctorProfile: { include: { address: true } } },
     });
     
-    // MUDANÇA AQUI: Adicionamos a inclusão do endereço do paciente
     const patient = await this.prisma.user.findUnique({
       where: { id: dto.patientId },
       include: { patientProfile: { include: { address: true } } },
@@ -37,10 +36,10 @@ export class CertificateService {
     
     const doctorAddressObj = doctor.doctorProfile.address;
     const formattedDoctorAddress = doctorAddressObj
-      ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.neighborhood}, ${doctorAddressObj.city} - ${doctorAddressObj.state}`
+      ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.city}, ${doctorAddressObj.state}`
       : 'Endereço não informado';
 
-    let cidDescription = dto.cidCode ? (await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } }))?.description : null;
+    const cid = dto.cidCode ? await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } }) : null;
     const issueDate = new Date();
     const formattedDateTime = issueDate.toLocaleString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' às ' + issueDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -59,31 +58,53 @@ export class CertificateService {
       startDate: dto.startDate ? new Date(dto.startDate).toLocaleDateString('pt-BR') : issueDate.toLocaleDateString('pt-BR'),
       purpose: dto.purpose,
       cidCode: dto.cidCode,
-      cidDescription: cidDescription,
+      cidDescription: cid?.description,
       issueDateTime: formattedDateTime,
       certificateId: certificateId,
     };
   }
 
-  // O resto do serviço não precisa de mudanças...
+  // Gera um PDF para preview, sem salvar nada no banco
   async generateCertificatePdf(dto: CreateCertificateDto, doctorId: string): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 'PREVIEW-ID');
-    const html = this.templatesService.getPopulatedCertificateHtml(data);
+    const html = this.templatesService.getPopulatedCertificateHtml(data, dto.templateId);
     return this.pdfService.generatePdfFromHtml(html);
   }
 
-  async create(createCertificateDto: CreateCertificateDto, doctorId: string) {
-    const certificateRecord = await this.prisma.medicalCertificate.create({ data: { ...createCertificateDto, doctorId } });
+  // Cria o atestado definitivo
+ async create(createCertificateDto: CreateCertificateDto, doctorId: string) {
+    const certificateRecord = await this.prisma.medicalCertificate.create({
+      data: {
+        purpose: createCertificateDto.purpose,
+        startDate: createCertificateDto.startDate,
+        durationInDays: createCertificateDto.durationInDays,
+        cidCode: createCertificateDto.cidCode,
+        observations: createCertificateDto.observations,
+        templateId: createCertificateDto.templateId || 'default',
+        
+        doctor: {
+          connect: { id: doctorId }
+        },
+        patient: {
+          connect: { id: createCertificateDto.patientId }
+        }
+      },
+    });
+
     const data = await this.prepareDataForPdf(createCertificateDto, doctorId, certificateRecord.id);
-    const html = this.templatesService.getPopulatedCertificateHtml(data);
+    const html = this.templatesService.getPopulatedCertificateHtml(data, createCertificateDto.templateId);
     const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
+    
     const pdfDir = path.join(process.cwd(), 'storage', 'certificates');
     if (!fs.existsSync(pdfDir)) { fs.mkdirSync(pdfDir, { recursive: true }); }
-    const pdfPath = path.join(pdfDir, `${certificateRecord.id}.pdf`);
+    
+    const pdfFileName = `${certificateRecord.id}.pdf`;
+    const pdfPath = path.join(pdfDir, pdfFileName);
     fs.writeFileSync(pdfPath, pdfBuffer);
+
     return await this.prisma.medicalCertificate.update({
       where: { id: certificateRecord.id },
-      data: { pdfUrl: `/storage/certificates/${certificateRecord.id}.pdf` },
+      data: { pdfUrl: `/storage/certificates/${pdfFileName}` },
     });
   }
 

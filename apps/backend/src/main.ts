@@ -7,10 +7,6 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // ==========================================================
-  // CONFIGURAÇÃO DE CORS FINAL E ROBUSTA
-  // ==========================================================
   
   // 1. Criamos uma "lista de permissões" com as origens que confiamos.
   const whitelist = [

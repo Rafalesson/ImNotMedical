@@ -1,4 +1,5 @@
-// src/certificate/dto/create-certificate.dto.ts 
+// Endereço: apps/backend/src/certificate/dto/create-certificate.dto.ts (Versão Corrigida)
+
 import {
   IsString,
   IsInt,
@@ -24,7 +25,6 @@ export class CreateCertificateDto {
   @IsInt()
   durationInDays?: number;
   
-  // Garantindo que o campo CID está aqui
   @IsOptional()
   @IsString()
   cidCode?: string;
@@ -36,4 +36,8 @@ export class CreateCertificateDto {
   @IsOptional()
   @IsString()
   observations?: string;
+
+  @IsOptional()
+  @IsString()
+  templateId?: string;
 }

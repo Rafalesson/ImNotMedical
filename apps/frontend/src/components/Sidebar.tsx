@@ -1,47 +1,60 @@
-// src/components/Sidebar.tsx
+// Endereço: apps/frontend/src/components/Sidebar.tsx (Estilo Original Preservado)
 'use client';
+
 import { LayoutDashboard, FileText, Calendar, LogOut } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
-export function Sidebar() {
+// Prop opcional para fechar o menu no mobile
+interface SidebarProps {
+  closeSidebar?: () => void;
+}
+
+export function Sidebar({ closeSidebar }: SidebarProps) {
   const { user, signOut } = useContext(AuthContext);
-  const router = useRouter();
+  const pathname = usePathname();
 
-  function handleLogout() {
-    signOut();
-    router.push('/');
-  }
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Atestados', href: '/dashboard/atestados', icon: FileText },
+    { name: 'Agenda', href: '/dashboard/agenda', icon: Calendar },
+  ];
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col p-4">
+    // SEU ESTILO ORIGINAL FOI MANTIDO: fundo escuro, texto branco.
+    <aside className="h-full w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col p-4">
       <div className="text-2xl font-bold mb-10">Zello</div>
       <nav className="flex-grow">
         <ul>
-          <li className="mb-4">
-            <a href="/dashboard" className="flex items-center p-2 rounded-lg bg-gray-700">
-              <LayoutDashboard className="mr-3" /> Dashboard
-            </a>
-          </li>
-          <li className="mb-4">
-            <a href="#" className="flex items-center p-2 rounded-lg hover:bg-gray-700">
-              <FileText className="mr-3" /> Atestados
-            </a>
-          </li>
-           <li className="mb-4">
-            <a href="#" className="flex items-center p-2 rounded-lg hover:bg-gray-700">
-              <Calendar className="mr-3" /> Agenda
-            </a>
-          </li>
+          {navigation.map((item) => (
+            <li key={item.name} className="mb-4">
+              <Link
+                href={item.href}
+                onClick={closeSidebar} // Fecha o menu ao clicar em um link no mobile
+                className={`flex items-center p-2 rounded-lg transition-colors ${
+                  pathname.startsWith(item.href)
+                    ? 'bg-gray-700' // Estilo ativo
+                    : 'hover:bg-gray-700' // Estilo inativo
+                }`}
+              >
+                <item.icon className="mr-3" />
+                {item.name}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
       <div className="mt-auto">
         <div className="mb-4 p-2 border-t border-gray-700">
-            <p className="font-semibold">{user?.name}</p>
-            <p className="text-sm text-gray-400">{user?.email}</p>
+            <p className="font-semibold">{user?.doctorProfile?.name || user?.email}</p>
+            <p className="text-sm text-gray-400">{user?.role === 'DOCTOR' ? 'Médico(a)' : 'Usuário'}</p>
         </div>
-        <button onClick={handleLogout} className="flex items-center w-full p-2 rounded-lg hover:bg-red-600">
+        <button 
+            onClick={signOut} 
+            className="flex items-center w-full p-2 rounded-lg hover:bg-red-600 transition-colors"
+        >
           <LogOut className="mr-3" /> Sair
         </button>
       </div>

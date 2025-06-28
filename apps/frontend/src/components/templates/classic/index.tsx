@@ -1,0 +1,73 @@
+// Endereço: apps/frontend/src/components/templates/classic/index.tsx (Corrigido)
+'use client';
+
+import { useContext } from 'react'; 
+import { AuthContext } from '@/contexts/AuthProvider';
+import { useAttestation } from '@/contexts/AttestationContext';
+import styles from './style.module.css';
+
+export function ClassicTemplate() {
+  const { data: attestationData } = useAttestation();
+  const { user } = useContext(AuthContext); 
+
+  if (!attestationData || !attestationData.patient || !user || !user.doctorProfile) {
+    return <div className="p-8 text-center text-red-600">Faltam dados para gerar o preview.</div>;
+  }
+
+  const { patient, purpose, durationInDays, cid } = attestationData;
+  const { name: doctorName, crm: doctorCrm, specialty } = user.doctorProfile;
+  const startDate = new Date().toLocaleDateString('pt-BR');
+  const issueDateTime = new Date().toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' });
+
+  return (
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <p className={styles.doctorName}>Dr(a). {doctorName}</p>
+        <p className={styles.doctorDetails}>{specialty || 'Clínico Geral'}</p>
+        <p className={styles.doctorDetails}>CRM {doctorCrm}</p>
+      </header>
+
+      <h1 className={styles.mainTitle}>ATESTADO MÉDICO</h1>
+
+      <main className={styles.mainContent}>
+        <p>
+          Atesto, para os devidos e legais fins, que o(a) paciente 
+          <strong> {patient.name}</strong>, inscrito(a) no CPF sob o nº 
+          <strong> {patient.cpf}</strong>, encontra-se sob meus cuidados 
+          profissionais, sendo-lhe necessário o afastamento de suas atividades 
+          habituais por um período de <strong> {durationInDays} ({'um'})</strong> dia(s), 
+          a contar de <strong>{startDate}</strong>.
+        </p>
+        {/* CORREÇÃO AQUI: Adicionamos a descrição do CID */}
+        {cid && <p className={styles.cidLine}>CID-10: {cid.code} - {cid.description}</p>}
+      </main>
+
+      {/* CORREÇÃO AQUI: A estrutura do rodapé agora é idêntica à do default */}
+      <footer className={styles.footer}>
+        <div>
+          <p>Emitido em {issueDateTime}</p>
+          <p className={styles.footerP2}>
+            Atendimento realizado via telemedicina, conforme legislação vigente.
+          </p>
+          <p>
+            Documento assinado digitalmente por {doctorName} <br />
+            A validade deste documento pode ser verificada em www.zello.com.br <br />
+            Código de validação do documento: <strong>PRÉ-VISUALIZAÇÃO</strong>
+          </p>
+        </div>
+        <div className={styles.containerImg}>
+          <img
+            src="/signature.png"
+            alt="Imagem da assinatura em PNG"
+            className={styles.signatureImg}
+          />
+          <img
+            src="/assinatura_img.jpeg"
+            alt="Imagem da assinatura eletronica"
+            className={styles.icpImg}
+          />
+        </div>
+      </footer>
+    </div>
+  );
+}

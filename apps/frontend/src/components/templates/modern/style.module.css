@@ -1,0 +1,102 @@
+/* Endereço: apps/frontend/src/components/templates/modern/style.module.css */
+
+.container {
+    font-family: 'Inter', sans-serif;
+    color: #111827;
+    background-color: white;
+    padding: 2rem;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #3b82f6;
+}
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+.doctorInfo {
+    text-align: right;
+}
+.doctorName {
+    font-size: 1.15rem; /* Ajustado */
+    font-weight: 600;
+    margin: 0;
+}
+.doctorSpec, .doctorCrm {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin: 2px 0;
+}
+.main {
+    flex-grow: 1;
+    padding-top: 2rem;
+}
+.mainTitle {
+    font-size: 1.875rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+}
+.mainText {
+    font-size: 1rem;
+    line-height: 1.75;
+    text-align: justify;
+    margin-bottom: 2rem;
+}
+.details {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem;
+}
+.detailItem {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+.detailItem:last-child {
+    border-bottom: none;
+}
+.detailItem span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+}
+.detailItem p {
+    margin: 0;
+    font-size: 1rem;
+}
+.footer {
+    margin-top: 5rem; /* Aumentado */
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Alinhamento alterado */
+    font-size: 0.75rem;
+    color: #6b7280;
+    gap: 0.5rem;
+}
+.footerDetails {
+    text-align: left;
+    flex-grow: 1;
+}
+.footerDetails p {
+    margin: 2px 0;
+}
+.signatureImages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.icpSeal {
+    max-height: 120px;
+}
+.signatureMark {
+    max-height: 40px; 
+}

@@ -55,13 +55,13 @@ export default function DashboardPage() {
         <Link href="/dashboard/atestados/novo" className="h-full">
           <div className="p-6 bg-white rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 h-full transition-colors">
             <PlusCircle className="w-12 h-12 text-blue-500 mb-2" />
-            <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Novo Atestado</h2>
+            <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Atestado</h2>
           </div>
         </Link>
         <Link href="#" className="h-full">
           <div className="p-6 bg-white rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 h-full transition-colors">
             <PlusCircle className="w-12 h-12 text-green-500 mb-2" />
-            <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Nova Receita</h2>
+            <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Receita</h2>
           </div>
         </Link>
         <div className="p-6 bg-white rounded-lg shadow-md flex flex-col items-center justify-center h-full">
@@ -81,7 +81,6 @@ export default function DashboardPage() {
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Atestados Emitidos Recentemente</h2>
         
-        {/* Renderização Condicional para a lista de atestados */}
         {isLoadingCertificates && <CertificatesListSkeleton />}
         
         {isCertificatesError && <p className="text-red-500">Ocorreu um erro ao buscar os atestados.</p>}

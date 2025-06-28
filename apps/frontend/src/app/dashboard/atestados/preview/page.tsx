@@ -1,11 +1,11 @@
-// src/app/dashboard/atestados/preview/page.tsx (Refatorado com Context)
+// src/app/dashboard/atestados/preview/page.tsx 
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { CheckCircle, XCircle, Loader2, Download, Home } from 'lucide-react';
-import { useAttestation } from '@/contexts/AttestationContext'; // 1. Importa o nosso hook
+import { useAttestation } from '@/contexts/AttestationContext'; 
 
 export default function PreviewPage() {
   const router = useRouter();
@@ -77,7 +77,6 @@ export default function PreviewPage() {
   }, [formData, router]);
 
   const handleEdit = () => {
-    // 6. Esta função agora funciona como esperado sem nenhuma mudança!
     // Ela simplesmente navega, e o formulário vai ler os dados do contexto.
     router.push('/dashboard/atestados/novo');
   };

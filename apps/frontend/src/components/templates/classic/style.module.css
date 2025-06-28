@@ -1,0 +1,70 @@
+/* Endereço: apps/frontend/src/components/templates/classic/style.module.css (Corrigido) */
+
+.container {
+    font-family: 'Times New Roman', Times, serif;
+    color: #000;
+    background-color: #fff;
+    padding: 2rem;
+    border: 2px double #333;
+}
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.doctorName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+.doctorDetails {
+    font-size: 1rem;
+    margin: 2px 0;
+}
+.mainTitle {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    letter-spacing: 4px;
+}
+.mainContent {
+    flex-grow: 1; /* Adicionado para empurrar o rodapé */
+}
+.mainContent p {
+    font-size: 1rem;
+    line-height: 2;
+    text-align: justify;
+    text-indent: 3rem;
+}
+.cidLine {
+    text-indent: 0;
+    margin-top: 1.5rem;
+}
+.footer {
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    margin-top: 2rem;
+}
+.footer p {
+    margin: 4px 0;
+}
+.footerP2 {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+.containerImg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1rem;
+}
+.icpImg {
+    width: 200px;
+}
+.signatureImg {
+    width: 100px;
+}

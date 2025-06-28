@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/CertificateForm.tsx (Com sintaxe do catch corrigida)
+// Endereço: apps/frontend/src/components/CertificateForm.tsx (Final com Renderização Dinâmica)
 'use client';
 
 import { useState } from 'react';
@@ -8,21 +8,35 @@ import { AutocompleteSearch } from './AutocompleteSearch';
 import { useAttestation } from '@/contexts/AttestationContext';
 import { Modal } from './common/Modal';
 import { DefaultTemplate } from './templates/default';
+import { ModernTemplate } from './templates/modern'; 
+import { ClassicTemplate } from './templates/classic';
 import { CheckCircle, Download, Home, Loader2 } from 'lucide-react';
-
-interface PatientProfileData {
-  dateOfBirth: string;
-  sex: 'MALE' | 'FEMALE' | 'OTHER';
-}
 
 type Patient = { 
   id: string; 
   name: string; 
   cpf: string; 
   userId: string;
-  patientProfile: PatientProfileData; // Incluímos o perfil completo
+  patientProfile: {
+    dateOfBirth: string;
+    sex: 'MALE' | 'FEMALE' | 'OTHER';
+  };
 };
 type Cid = { id: string; code: string; description: string; };
+
+// 2. COMPONENTE AUXILIAR PARA ESCOLHER QUAL PREVIEW RENDERIZAR
+const ActiveTemplatePreview = () => {
+  const { data } = useAttestation();
+  
+  switch (data.templateId) {
+    case 'modern':
+      return <ModernTemplate />;
+    case 'classic':
+      return <ClassicTemplate />;
+    default:
+      return <DefaultTemplate />;
+  }
+};
 
 export function CertificateForm() {
   const router = useRouter();
@@ -50,7 +64,7 @@ export function CertificateForm() {
     try {
       const response = await api.get(`/cids/search?query=${query}`);
       return response.data;
-    } catch (error) { // <-- A CORREÇÃO ESTÁ AQUI: Adicionando as chaves
+    } catch (error) {
       console.error('Erro ao buscar CIDs:', error);
       return [];
     }
@@ -73,7 +87,7 @@ export function CertificateForm() {
   function handleClosePreview() {
     setIsPreviewOpen(false);
   }
-  
+
   async function handleConfirmAndIssue() {
     if (!data.patient) return;
 
@@ -88,7 +102,6 @@ export function CertificateForm() {
       };
 
       const response = await api.post('/certificates', dto);
-
       const result = response.data;
 
       if (result && result.pdfUrl) {
@@ -181,7 +194,7 @@ export function CertificateForm() {
               onChange={(e) => setData({ ...data, templateId: e.target.value })}
               className="w-full rounded-md border border-gray-300 p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
             >
-              <option value="default">Padrão Zello</option>
+              <option value="default">Padrão</option>
               <option value="modern">Moderno</option>
               <option value="classic">Clássico</option>
             </select>
@@ -202,7 +215,8 @@ export function CertificateForm() {
       >
         {!submissionResult ? (
           <>
-            <DefaultTemplate />
+            {/* 3. USAMOS O COMPONENTE DINÂMICO AQUI */}
+            <ActiveTemplatePreview />
             <div className="mt-8 flex justify-end space-x-4 border-t pt-4">
               <button 
                 type="button"
@@ -218,7 +232,7 @@ export function CertificateForm() {
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Emitindo...' : 'Confirmar e Emitir Atestado'}
+                {isSubmitting ? 'Emitindo...' : 'Confirmar e Emitir'}
               </button>
             </div>
           </>

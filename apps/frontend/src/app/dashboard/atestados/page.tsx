@@ -1,13 +1,13 @@
-// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Final com Preview no Histórico)
+// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Layout Final do Botão de Exclusão)
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Search, Download, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react'; // 1. Importa o ícone de olho
+import { Search, Download, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
+import { useDebounce } from '@/hooks/useDebounce';
 
-// Tipagem para os dados que esperamos da API
 type Certificate = {
   id: string;
   issueDate: string;
@@ -29,29 +29,41 @@ type ApiResponse = {
 
 export default function CertificateHistoryPage() {
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
   const [inputValue, setInputValue] = useState('');
+  const debouncedSearchTerm = useDebounce(inputValue, 500);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [certificateToDelete, setCertificateToDelete] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const headerCheckboxRef = useRef<HTMLInputElement>(null);
-  
-  // 2. Novos estados para controlar o modal de preview
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
-
+  
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ['certificateHistory', page, searchTerm],
+    queryKey: ['certificateHistory', page, debouncedSearchTerm],
     queryFn: async () => {
       const { data } = await api.get('/certificates/my-certificates', {
-        params: { page, limit: 10, patientName: searchTerm },
+        params: {
+          page,
+          limit: 10,
+          patientName: debouncedSearchTerm,
+        },
       });
       return data;
     },
     keepPreviousData: true,
   });
+
+  useEffect(() => {
+    if (page !== 1) {
+      setPage(1);
+    }
+    setSelectedIds([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm]);
+
 
   const batchDeleteMutation = useMutation({
     mutationFn: (ids: string[]) => api.delete('/certificates/batch/delete', { data: { ids } }),
@@ -87,6 +99,7 @@ export default function CertificateHistoryPage() {
     }
   }, [selectedIds, data]);
 
+
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const allIdsOnPage = data?.data.map(cert => cert.id) ?? [];
@@ -103,15 +116,7 @@ export default function CertificateHistoryPage() {
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
     }
   };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1); 
-    setSearchTerm(inputValue);
-    setSelectedIds([]);
-  };
-
-  // 3. Funções para controlar o novo modal de preview
+  
   const handleOpenPreview = (pdfUrl: string) => {
     setPreviewPdfUrl(pdfUrl);
     setIsPreviewModalOpen(true);
@@ -194,7 +199,6 @@ export default function CertificateHistoryPage() {
           {new Date(cert.issueDate).toLocaleDateString('pt-BR')}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-          {/* 4. BOTÃO DE VISUALIZAR ADICIONADO */}
           <button
             onClick={() => handleOpenPreview(cert.pdfUrl)}
             className="text-gray-600 hover:text-gray-900 inline-flex items-center"
@@ -230,11 +234,12 @@ export default function CertificateHistoryPage() {
 
   return (
     <div>
+      {/* O botão foi removido daqui */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Histórico de Atestados</h1>
       </div>
 
-      <form onSubmit={handleSearch} className="mb-6">
+      <div className="mb-6">
         <div className="relative">
           <input
             type="text"
@@ -245,12 +250,13 @@ export default function CertificateHistoryPage() {
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
-      </form>
+      </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              {/* O botão de exclusão em lote agora vive aqui, ao lado do checkbox */}
               <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-x-3">
                   <input
@@ -308,12 +314,11 @@ export default function CertificateHistoryPage() {
         </div>
       )}
 
-      {/* 5. O NOVO MODAL PARA O PREVIEW */}
       <Modal
         isOpen={isPreviewModalOpen}
         onClose={handleClosePreview}
         title="Visualização do Atestado"
-        maxWidth="max-w-4xl" 
+        maxWidth="max-w-4xl"
       >
         {previewPdfUrl ? (
           <iframe 

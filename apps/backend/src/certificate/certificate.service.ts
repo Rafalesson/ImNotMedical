@@ -222,4 +222,36 @@ export class CertificateService {
 
     return { message: 'Atestado deletado com sucesso.' };
   }
+
+  async removeMany(ids: string[]): Promise<{ message: string; count: number }> {
+    // Encontra todos os registros para pegar os caminhos dos PDFs
+    const certificatesToDelete = await this.prisma.medicalCertificate.findMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    if (certificatesToDelete.length === 0) {
+      throw new NotFoundException('Nenhum atestado encontrado para os IDs fornecidos.');
+    }
+
+    // Deleta os arquivos físicos
+    for (const certificate of certificatesToDelete) {
+      if (certificate.pdfUrl) {
+        const filePath = path.join(process.cwd(), certificate.pdfUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    }
+
+    // Deleta todos os registros do banco de uma vez
+    const { count } = await this.prisma.medicalCertificate.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    return { message: `${count} atestado(s) deletado(s) com sucesso.`, count };
+  }
 }

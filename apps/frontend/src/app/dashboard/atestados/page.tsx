@@ -1,7 +1,7 @@
-// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Versão mais segura)
+// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Final com Botão de Excluir no Header da Tabela)
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Search, Download, Trash2, Loader2, AlertTriangle } from 'lucide-react';
@@ -31,10 +31,10 @@ export default function CertificateHistoryPage() {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [inputValue, setInputValue] = useState('');
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [certificateToDelete, setCertificateToDelete] = useState<string | null>(null);
-  
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
@@ -52,8 +52,22 @@ export default function CertificateHistoryPage() {
     keepPreviousData: true,
   });
 
+  const batchDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => api.delete('/certificates/batch/delete', { data: { ids } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['certificateHistory'] });
+      setSelectedIds([]);
+    },
+    onError: (error) => {
+      console.error("Erro ao deletar atestados em lote:", error);
+      alert("Falha ao deletar os atestados selecionados.");
+    }
+  });
+
   const deleteMutation = useMutation({
-    mutationFn: (certificateId: string) => api.delete(`/certificates/${certificateId}`),
+    mutationFn: (certificateId: string) => {
+      return api.delete(`/certificates/${certificateId}`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['certificateHistory'] });
     },
@@ -63,20 +77,59 @@ export default function CertificateHistoryPage() {
     }
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    setSearchTerm(inputValue);
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      const numSelected = selectedIds.length;
+      const numItemsOnPage = data?.data.length ?? 0;
+      headerCheckboxRef.current.checked = numSelected === numItemsOnPage && numItemsOnPage > 0;
+      headerCheckboxRef.current.indeterminate = numSelected > 0 && numSelected < numItemsOnPage;
+    }
+  }, [selectedIds, data]);
+
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const allIdsOnPage = data?.data.map(cert => cert.id) ?? [];
+      setSelectedIds(allIdsOnPage);
+    } else {
+      setSelectedIds([]);
+    }
   };
 
-  const handleDeleteClick = (certificateId: string) => {
+  const handleSelectOne = (id: string, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1); 
+    setSearchTerm(inputValue);
+    setSelectedIds([]);
+  };
+
+  const openBatchDeleteModal = () => {
+    if (selectedIds.length > 0) {
+      setCertificateToDelete(null); 
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const openSingleDeleteModal = (certificateId: string) => {
     setCertificateToDelete(certificateId);
+    setSelectedIds([]); // Limpa a seleção múltipla ao focar em um item
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (certificateToDelete) {
       deleteMutation.mutate(certificateToDelete);
+    } 
+    else if (selectedIds.length > 0) {
+      batchDeleteMutation.mutate(selectedIds);
     }
     closeDeleteModal();
   };
@@ -86,12 +139,11 @@ export default function CertificateHistoryPage() {
     setCertificateToDelete(null);
   };
 
-  // --- LÓGICA DE RENDERIZAÇÃO CENTRALIZADA ---
   const renderContent = () => {
     if (isLoading) {
       return (
         <tr>
-          <td colSpan={3} className="text-center p-6">
+          <td colSpan={4} className="text-center p-6">
             <div className="flex justify-center items-center">
               <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
@@ -102,20 +154,28 @@ export default function CertificateHistoryPage() {
     if (isError) {
       return (
         <tr>
-          <td colSpan={3} className="text-center p-6 text-red-500">Erro ao carregar atestados. Tente novamente.</td>
+          <td colSpan={4} className="text-center p-6 text-red-500">Erro ao carregar atestados. Tente novamente.</td>
         </tr>
       );
     }
     if (data?.data.length === 0) {
       return (
         <tr>
-          <td colSpan={3} className="text-center p-6 text-gray-500">Nenhum atestado encontrado.</td>
+          <td colSpan={4} className="text-center p-6 text-gray-500">Nenhum atestado encontrado.</td>
         </tr>
       );
     }
 
     return data?.data.map((cert) => (
-      <tr key={cert.id}>
+      <tr key={cert.id} className={selectedIds.includes(cert.id) ? 'bg-blue-50' : ''}>
+        <td className="px-6 py-4">
+          <input
+            type="checkbox"
+            checked={selectedIds.includes(cert.id)}
+            onChange={(e) => handleSelectOne(cert.id, e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
           {cert.patient?.patientProfile?.name || 'N/A'}
         </td>
@@ -133,7 +193,7 @@ export default function CertificateHistoryPage() {
             Baixar
           </a>
           <button
-            onClick={() => handleDeleteClick(cert.id)}
+            onClick={() => openSingleDeleteModal(cert.id)}
             disabled={deleteMutation.isLoading}
             className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
           >
@@ -148,6 +208,7 @@ export default function CertificateHistoryPage() {
 
   return (
     <div>
+      {/* O botão de lixeira foi REMOVIDO daqui */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Histórico de Atestados</h1>
       </div>
@@ -169,6 +230,26 @@ export default function CertificateHistoryPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              {/* --- MUDANÇA AQUI: A lixeira agora aparece ao lado do checkbox --- */}
+              <th className="px-6 py-3 text-left">
+                <div className="flex items-center gap-x-3">
+                  <input
+                    type="checkbox"
+                    ref={headerCheckboxRef}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  {selectedIds.length > 0 && (
+                    <button
+                      onClick={openBatchDeleteModal}
+                      className="p-1 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-50"
+                      disabled={batchDeleteMutation.isLoading}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Emissão</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
@@ -180,7 +261,6 @@ export default function CertificateHistoryPage() {
         </table>
       </div>
 
-      {/* A Paginação agora só renderiza se os dados existirem e o total for maior que 0 */}
       {data && data.total > 0 && (
         <div className="mt-6 flex justify-between items-center">
             <div>
@@ -213,29 +293,29 @@ export default function CertificateHistoryPage() {
         title="Confirmar Exclusão"
         maxWidth="max-w-lg"
       >
-        <div className="mt-2">
-            <div className="flex items-start gap-4">
-                <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
-                    <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
-                </div>
-                <div>
-                    <p className="text-sm text-gray-700">
-                        Você tem certeza que deseja excluir este atestado?
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Esta ação é permanente e não poderá ser desfeita.
-                    </p>
-                </div>
+        <div>
+          <div className="flex items-start gap-4">
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+              <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
             </div>
+            <div>
+              <p className="text-sm text-gray-700">
+                Você tem certeza que deseja excluir <strong>{certificateToDelete ? 1 : selectedIds.length} atestado(s)</strong>?
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Esta ação é permanente e não poderá ser desfeita.
+              </p>
+            </div>
+          </div>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <button
             type="button"
             className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
             onClick={handleConfirmDelete}
-            disabled={deleteMutation.isLoading}
+            disabled={deleteMutation.isLoading || batchDeleteMutation.isLoading}
           >
-            {deleteMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {(deleteMutation.isLoading || batchDeleteMutation.isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Excluir
           </button>
           <button

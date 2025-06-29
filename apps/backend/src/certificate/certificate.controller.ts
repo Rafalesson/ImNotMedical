@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { Query } from '@nestjs/common';
 import { Delete } from '@nestjs/common';
+import { BatchDeleteDto } from './dto/batch-delete.dto';
 import { Response } from 'express';
 
 @Controller('certificates')
@@ -57,5 +58,12 @@ export class CertificateController {
     // deveria ser adicionada no 'certificateService.remove' para maior segurança.
     // Por enquanto, vamos manter simples.
     return this.certificateService.remove(id);
+  }
+
+  @Delete('batch/delete')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('DOCTOR')
+  removeMany(@Body() batchDeleteDto: BatchDeleteDto) {
+    return this.certificateService.removeMany(batchDeleteDto.ids);
   }
 }

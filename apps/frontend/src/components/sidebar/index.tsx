@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/Sidebar.tsx (Estilo Original Preservado)
+// Endereço: apps/frontend/src/components/sidebar/index.tsx (Lógica de 'ativo' corrigida)
 'use client';
 
 import { LayoutDashboard, FileText, Calendar, LogOut } from 'lucide-react';
@@ -7,7 +7,6 @@ import { AuthContext } from '@/contexts/AuthProvider';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
-// Prop opcional para fechar o menu no mobile
 interface SidebarProps {
   closeSidebar?: () => void;
 }
@@ -23,27 +22,36 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   ];
 
   return (
-    // SEU ESTILO ORIGINAL FOI MANTIDO: fundo escuro, texto branco.
     <aside className="h-full w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col p-4">
       <div className="text-2xl font-bold mb-10">Zello</div>
       <nav className="flex-grow">
         <ul>
-          {navigation.map((item) => (
-            <li key={item.name} className="mb-4">
-              <Link
-                href={item.href}
-                onClick={closeSidebar} // Fecha o menu ao clicar em um link no mobile
-                className={`flex items-center p-2 rounded-lg transition-colors ${
-                  pathname.startsWith(item.href)
-                    ? 'bg-gray-700' // Estilo ativo
-                    : 'hover:bg-gray-700' // Estilo inativo
-                }`}
-              >
-                <item.icon className="mr-3" />
-                {item.name}
-              </Link>
-            </li>
-          ))}
+          {navigation.map((item) => {
+            // --- INÍCIO DA CORREÇÃO ---
+            // Esta nova lógica garante que o Dashboard só fica ativo em sua própria página,
+            // enquanto os outros itens ficam ativos também em suas sub-páginas.
+            const isActive = item.href === '/dashboard'
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
+            // --- FIM DA CORREÇÃO ---
+
+            return (
+              <li key={item.name} className="mb-4">
+                <Link
+                  href={item.href}
+                  onClick={closeSidebar}
+                  className={`flex items-center p-2 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-gray-700' // Estilo ativo
+                      : 'hover:bg-gray-700' // Estilo inativo
+                  }`}
+                >
+                  <item.icon className="mr-3" />
+                  {item.name}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       <div className="mt-auto">

@@ -1,8 +1,8 @@
-// Endereço: apps/frontend/src/app/dashboard/page.tsx (versão final com React Query)
+// Endereço: apps/frontend/src/app/dashboard/page.tsx (Versão Final Corrigida)
 'use client';
 
 import Link from 'next/link';
-import { PlusCircle, FileText } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { CertificatesListSkeleton } from './certificates-list-skeleton';
@@ -20,26 +20,25 @@ type Certificate = {
 };
 
 // --- Funções de Busca de Dados ---
-// Cada função busca um dado específico e será usada por um hook 'useQuery'
 const fetchPatientCount = async (): Promise<{ count: number }> => {
   const { data } = await api.get('/patients/count');
   return data;
 };
 
 const fetchRecentCertificates = async (): Promise<Certificate[]> => {
-  const { data } = await api.get('/certificates/my-certificates');
+  // --- CORREÇÃO AQUI ---
+  // Apontamos para a nova rota dedicada que retorna um array simples dos últimos 5 atestados.
+  const { data } = await api.get('/certificates/recent');
   return data;
 };
 
 
 export default function DashboardPage() {
-  // 1. Hook para buscar a contagem de pacientes
   const { data: patientData, isLoading: isLoadingCount } = useQuery({
     queryKey: ['patientCount'],
     queryFn: fetchPatientCount,
   });
 
-  // 2. Hook para buscar a lista de atestados
   const { data: certificates, isLoading: isLoadingCertificates, isError: isCertificatesError } = useQuery({
     queryKey: ['recentCertificates'],
     queryFn: fetchRecentCertificates,

@@ -212,6 +212,7 @@ export function CertificateForm() {
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
         title={submissionResult ? "Atestado Emitido com Sucesso" : "Pré-visualização do Atestado"}
+        maxWidth="max-w-3xl"
       >
         {!submissionResult ? (
           <>
@@ -239,9 +240,9 @@ export function CertificateForm() {
         ) : (
           <div className="text-center p-8">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-            <h2 className="mt-4 text-2xl font-bold">Atestado Gerado!</h2>
+            <h2 className="mt-4 text-2xl font-bold text-gray-800">Atestado Gerado!</h2>
             <p className="mt-2 text-gray-600">O documento foi salvo e está pronto para download.</p>
-            <div className="mt-8 flex justify-center space-x-4">
+            <div className="mt-8 flex flex-col sm:flex-row sm:justify-center sm:space-x-4 space-y-4 sm:space-y-0">
                <a
                 href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3333'}${submissionResult.pdfUrl}`}
                 download

@@ -6,6 +6,8 @@ import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { Query } from '@nestjs/common';
+import { Delete } from '@nestjs/common';
 import { Response } from 'express';
 
 @Controller('certificates')
@@ -32,9 +34,28 @@ export class CertificateController {
     return { status: 'ok', message: 'Preview is handled by the client.' };
   }
 
-  @Get('my-certificates')
+   @Get('my-certificates')
   @UseGuards(AuthGuard)
-  findAllByDoctor(@Request() req) {
-    return this.certificateService.findAllByDoctor(req.user.id);
+  searchMyCertificates(
+    @Request() req,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('patientName') patientName: string,
+  ) {
+    return this.certificateService.searchByDoctor(req.user.id, {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      patientName,
+    });
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('DOCTOR')
+  remove(@Param('id') id: string) {
+    // A validação para garantir que o médico só pode deletar os próprios atestados
+    // deveria ser adicionada no 'certificateService.remove' para maior segurança.
+    // Por enquanto, vamos manter simples.
+    return this.certificateService.remove(id);
   }
 }

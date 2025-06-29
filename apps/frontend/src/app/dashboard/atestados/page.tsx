@@ -1,10 +1,10 @@
-// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Final com Botão de Excluir no Header da Tabela)
+// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Final com Preview no Histórico)
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Search, Download, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, Download, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react'; // 1. Importa o ícone de olho
 import { Modal } from '@/components/common/Modal';
 
 // Tipagem para os dados que esperamos da API
@@ -35,17 +35,18 @@ export default function CertificateHistoryPage() {
   const [certificateToDelete, setCertificateToDelete] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
+  
+  // 2. Novos estados para controlar o modal de preview
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['certificateHistory', page, searchTerm],
     queryFn: async () => {
       const { data } = await api.get('/certificates/my-certificates', {
-        params: {
-          page,
-          limit: 10,
-          patientName: searchTerm,
-        },
+        params: { page, limit: 10, patientName: searchTerm },
       });
       return data;
     },
@@ -86,7 +87,6 @@ export default function CertificateHistoryPage() {
     }
   }, [selectedIds, data]);
 
-
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const allIdsOnPage = data?.data.map(cert => cert.id) ?? [];
@@ -111,6 +111,17 @@ export default function CertificateHistoryPage() {
     setSelectedIds([]);
   };
 
+  // 3. Funções para controlar o novo modal de preview
+  const handleOpenPreview = (pdfUrl: string) => {
+    setPreviewPdfUrl(pdfUrl);
+    setIsPreviewModalOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewModalOpen(false);
+    setPreviewPdfUrl(null);
+  };
+
   const openBatchDeleteModal = () => {
     if (selectedIds.length > 0) {
       setCertificateToDelete(null); 
@@ -120,7 +131,7 @@ export default function CertificateHistoryPage() {
 
   const openSingleDeleteModal = (certificateId: string) => {
     setCertificateToDelete(certificateId);
-    setSelectedIds([]); // Limpa a seleção múltipla ao focar em um item
+    setSelectedIds([]);
     setIsDeleteModalOpen(true);
   };
 
@@ -183,11 +194,21 @@ export default function CertificateHistoryPage() {
           {new Date(cert.issueDate).toLocaleDateString('pt-BR')}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+          {/* 4. BOTÃO DE VISUALIZAR ADICIONADO */}
+          <button
+            onClick={() => handleOpenPreview(cert.pdfUrl)}
+            className="text-gray-600 hover:text-gray-900 inline-flex items-center"
+            title="Visualizar Atestado"
+          >
+            <Eye className="mr-1 h-4 w-4" />
+            Visualizar
+          </button>
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL}${cert.pdfUrl}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+            title="Baixar Atestado"
           >
             <Download className="mr-1 h-4 w-4" />
             Baixar
@@ -196,6 +217,7 @@ export default function CertificateHistoryPage() {
             onClick={() => openSingleDeleteModal(cert.id)}
             disabled={deleteMutation.isLoading}
             className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
+            title="Excluir Atestado"
           >
             <Trash2 className="mr-1 h-4 w-4" />
             Excluir
@@ -208,7 +230,6 @@ export default function CertificateHistoryPage() {
 
   return (
     <div>
-      {/* O botão de lixeira foi REMOVIDO daqui */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Histórico de Atestados</h1>
       </div>
@@ -230,7 +251,6 @@ export default function CertificateHistoryPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {/* --- MUDANÇA AQUI: A lixeira agora aparece ao lado do checkbox --- */}
               <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-x-3">
                   <input
@@ -244,6 +264,7 @@ export default function CertificateHistoryPage() {
                       onClick={openBatchDeleteModal}
                       className="p-1 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-50"
                       disabled={batchDeleteMutation.isLoading}
+                      title={`Excluir ${selectedIds.length} atestado(s)`}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -287,26 +308,47 @@ export default function CertificateHistoryPage() {
         </div>
       )}
 
+      {/* 5. O NOVO MODAL PARA O PREVIEW */}
+      <Modal
+        isOpen={isPreviewModalOpen}
+        onClose={handleClosePreview}
+        title="Visualização do Atestado"
+        maxWidth="max-w-4xl" 
+      >
+        {previewPdfUrl ? (
+          <iframe 
+            src={`${process.env.NEXT_PUBLIC_API_URL}${previewPdfUrl}`}
+            className="w-full h-[75vh] border-0"
+            title="Preview do Atestado"
+          />
+        ) : (
+          <div className="flex justify-center items-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="ml-4">Carregando preview...</p>
+          </div>
+        )}
+      </Modal>
+
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
         title="Confirmar Exclusão"
         maxWidth="max-w-lg"
       >
-        <div>
-          <div className="flex items-start gap-4">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
-              <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+        <div className="mt-2">
+            <div className="flex items-start gap-4">
+                <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0">
+                    <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+                </div>
+                <div>
+                    <p className="text-sm text-gray-700">
+                        Você tem certeza que deseja excluir <strong>{certificateToDelete ? 1 : selectedIds.length} atestado(s)</strong>?
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Esta ação é permanente e não poderá ser desfeita.
+                    </p>
+                </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-700">
-                Você tem certeza que deseja excluir <strong>{certificateToDelete ? 1 : selectedIds.length} atestado(s)</strong>?
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                Esta ação é permanente e não poderá ser desfeita.
-              </p>
-            </div>
-          </div>
         </div>
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <button

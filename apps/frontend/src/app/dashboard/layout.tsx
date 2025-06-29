@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar } from "@/components/sidebar";
 import { Dialog, Transition } from '@headlessui/react';
 import { Menu, X } from 'lucide-react';
 

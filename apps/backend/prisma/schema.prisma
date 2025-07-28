@@ -85,6 +85,7 @@ model PatientProfile {
 model MedicalCertificate {
   id               String   @id @default(cuid())
   issueDate        DateTime @default(now())
+  templateId String  @default("default")
   purpose          String
   startDate        DateTime?
   durationInDays   Int?

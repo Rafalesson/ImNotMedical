@@ -32,6 +32,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   const httpAdapterHost = app.get(HttpAdapterHost);
+
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
   await app.listen(3333);

@@ -73,11 +73,6 @@ const allTemplates = {
             </div>
             <div class="container_img">
               <img
-                src="{{signaturePngImage}}"
-                alt="Imagem da assinatura em PNG"
-                id="signature_img"
-              />
-              <img
                 src="{{signatureImage}}"
                 alt="Imagem da assinatura eletronica"
                 id="icp_img"
@@ -181,11 +176,6 @@ const allTemplates = {
               </p>
             </div>
             <div class="container_img">
-              <img
-                src="{{signaturePngImage}}"
-                alt="Imagem da assinatura em PNG"
-                id="signature_img"
-              />
               <img
                 src="{{signatureImage}}"
                 alt="Imagem da assinatura eletronica"

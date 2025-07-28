@@ -70,18 +70,18 @@ async function main() {
   console.log('Usuários de teste antigos removidos.');
 
 
-  const hashedPassword = await bcrypt.hash('123456', 10);
+  const hashedPassword = await bcrypt.hash('12345678', 10);
 
   // --- CRIAÇÃO DO MÉDICO DE TESTE ---
   const doctor = await prisma.user.create({
     data: {
-      email: 'dr.barbara@zello.com',
-      phone: '11988887777',
+      email: 'dr.teste@zello.com',
+      phone: '11999999999',
       password: hashedPassword,
       role: Role.DOCTOR,
       doctorProfile: {
         create: {
-          name: 'Dra. Bárbara Ponce',
+          name: 'Dra. Teste da Silva',
           crm: '12345SP',
           specialty: 'Cardiologia',
           address: {
@@ -103,13 +103,13 @@ async function main() {
   // --- CRIAÇÃO DO PACIENTE DE TESTE ---
   const patient = await prisma.user.create({
     data: {
-      email: 'livia@email.com',
-      phone: '21977776666',
+      email: 'paciente.teste@zello.com',
+      phone: '21999999999',
       password: hashedPassword,
       role: Role.PATIENT,
       patientProfile: {
         create: {
-          name: 'Lívia L. S. Santos',
+          name: 'Paciente Teste da Silva',
           cpf: '111.222.333-44',
           dateOfBirth: new Date('1990-05-15T00:00:00.000Z'),
         },

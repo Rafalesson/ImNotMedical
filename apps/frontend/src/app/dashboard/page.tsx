@@ -26,7 +26,6 @@ const fetchPatientCount = async (): Promise<{ count: number }> => {
 };
 
 const fetchRecentCertificates = async (): Promise<Certificate[]> => {
-  // --- CORREÇÃO AQUI ---
   // Apontamos para a nova rota dedicada que retorna um array simples dos últimos 5 atestados.
   const { data } = await api.get('/certificates/recent');
   return data;

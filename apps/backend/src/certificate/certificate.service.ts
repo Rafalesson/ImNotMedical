@@ -17,9 +17,13 @@ export class CertificateService {
     private readonly prisma: PrismaService,
     private readonly pdfService: PdfService,
     private readonly templatesService: TemplatesService,
-  ) { }
+  ) {}
 
-  private async prepareDataForPdf(dto: CreateCertificateDto, doctorId: string, certificateId: string): Promise<CertificateData> {
+  private async prepareDataForPdf(
+    dto: CreateCertificateDto,
+    doctorId: string,
+    certificateId: string,
+  ): Promise<CertificateData> {
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
       include: { doctorProfile: { include: { address: true } } },
@@ -31,7 +35,9 @@ export class CertificateService {
     });
 
     if (!doctor?.doctorProfile || !patient?.patientProfile) {
-      throw new NotFoundException('Perfil do médico ou do paciente não encontrado.');
+      throw new NotFoundException(
+        'Perfil do médico ou do paciente não encontrado.',
+      );
     }
 
     const doctorAddressObj = doctor.doctorProfile.address;
@@ -39,9 +45,21 @@ export class CertificateService {
       ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.city}, ${doctorAddressObj.state}`
       : 'Endereço não informado';
 
-    const cid = dto.cidCode ? await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } }) : null;
+    const cid = dto.cidCode
+      ? await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } })
+      : null;
     const issueDate = new Date();
-    const formattedDateTime = issueDate.toLocaleString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' às ' + issueDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const formattedDateTime =
+      issueDate.toLocaleString('pt-BR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }) +
+      ' às ' +
+      issueDate.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
     return {
       doctorName: doctor.doctorProfile.name,
@@ -52,10 +70,17 @@ export class CertificateService {
       patientName: patient.patientProfile.name,
       patientCpf: patient.patientProfile.cpf,
       patientAge: calculateAge(patient.patientProfile.dateOfBirth).toString(),
-      patientSex: patient.patientProfile.sex === Sex.MALE ? 'Masculino' : patient.patientProfile.sex === Sex.FEMALE ? 'Feminino' : 'Não informado',
+      patientSex:
+        patient.patientProfile.sex === Sex.MALE
+          ? 'Masculino'
+          : patient.patientProfile.sex === Sex.FEMALE
+            ? 'Feminino'
+            : 'Não informado',
       durationInDays: dto.durationInDays || 0,
       durationInWords: numberToWords(dto.durationInDays || 0),
-      startDate: dto.startDate ? new Date(dto.startDate).toLocaleDateString('pt-BR') : issueDate.toLocaleDateString('pt-BR'),
+      startDate: dto.startDate
+        ? new Date(dto.startDate).toLocaleDateString('pt-BR')
+        : issueDate.toLocaleDateString('pt-BR'),
       purpose: dto.purpose,
       cidCode: dto.cidCode,
       cidDescription: cid?.description,
@@ -64,9 +89,17 @@ export class CertificateService {
     };
   }
 
-  async generateCertificatePdf(dto: CreateCertificateDto, doctorId: string): Promise<Buffer> {
+  async generateCertificatePdf(
+    dto: CreateCertificateDto,
+    doctorId: string,
+  ): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 'PREVIEW-ID');
-    const html = this.templatesService.getPopulatedCertificateHtml(data, dto.templateId);
+    // MODIFICAÇÃO: Adicionado 'await' para esperar a Promise<string> ser resolvida.
+    const html =
+      await this.templatesService.getPopulatedCertificateHtml(
+        data,
+        dto.templateId,
+      );
     return this.pdfService.generatePdfFromHtml(html);
   }
 
@@ -80,16 +113,26 @@ export class CertificateService {
         observations: createCertificateDto.observations,
         templateId: createCertificateDto.templateId || 'default',
         doctor: { connect: { id: doctorId } },
-        patient: { connect: { id: createCertificateDto.patientId } }
+        patient: { connect: { id: createCertificateDto.patientId } },
       },
     });
 
-    const data = await this.prepareDataForPdf(createCertificateDto, doctorId, certificateRecord.id);
-    const html = this.templatesService.getPopulatedCertificateHtml(data, createCertificateDto.templateId);
+    const data = await this.prepareDataForPdf(
+      createCertificateDto,
+      doctorId,
+      certificateRecord.id,
+    );
+    // MODIFICAÇÃO: Adicionado 'await' para esperar a Promise<string> ser resolvida.
+    const html = await this.templatesService.getPopulatedCertificateHtml(
+      data,
+      createCertificateDto.templateId,
+    );
     const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
 
     const pdfDir = path.join(process.cwd(), 'storage', 'certificates');
-    if (!fs.existsSync(pdfDir)) { fs.mkdirSync(pdfDir, { recursive: true }); }
+    if (!fs.existsSync(pdfDir)) {
+      fs.mkdirSync(pdfDir, { recursive: true });
+    }
 
     const pdfFileName = `${certificateRecord.id}.pdf`;
     const pdfPath = path.join(pdfDir, pdfFileName);
@@ -108,9 +151,9 @@ export class CertificateService {
       include: {
         patient: {
           include: {
-            patientProfile: true
-          }
-        }
+            patientProfile: true,
+          },
+        },
       },
       take: 5,
     });
@@ -124,13 +167,19 @@ export class CertificateService {
         patient: { include: { patientProfile: true } },
       },
     });
-    if (!certificate) { throw new NotFoundException('Atestado não encontrado.'); }
+    if (!certificate) {
+      throw new NotFoundException('Atestado não encontrado.');
+    }
     return {
       issuedAt: certificate.issueDate,
       durationInDays: certificate.durationInDays,
       doctorName: certificate.doctor.doctorProfile?.name,
       doctorCrm: certificate.doctor.doctorProfile?.crm,
-      patientName: certificate.patient.patientProfile?.name.split(' ').map((word, index) => (index === 0 ? word : `${word.charAt(0)}.`)).join(' ') || '',
+      patientName:
+        certificate.patient.patientProfile?.name
+          .split(' ')
+          .map((word, index) => (index === 0 ? word : `${word.charAt(0)}.`))
+          .join(' ') || '',
     };
   }
 
@@ -223,7 +272,9 @@ export class CertificateService {
     return { message: 'Atestado deletado com sucesso.' };
   }
 
-  async removeMany(ids: string[]): Promise<{ message: string; count: number }> {
+  async removeMany(
+    ids: string[],
+  ): Promise<{ message: string; count: number }> {
     // Encontra todos os registros para pegar os caminhos dos PDFs
     const certificatesToDelete = await this.prisma.medicalCertificate.findMany({
       where: {
@@ -232,7 +283,9 @@ export class CertificateService {
     });
 
     if (certificatesToDelete.length === 0) {
-      throw new NotFoundException('Nenhum atestado encontrado para os IDs fornecidos.');
+      throw new NotFoundException(
+        'Nenhum atestado encontrado para os IDs fornecidos.',
+      );
     }
 
     // Deleta os arquivos físicos

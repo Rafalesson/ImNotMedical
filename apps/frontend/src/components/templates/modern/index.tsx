@@ -1,10 +1,11 @@
-// Endereço: apps/frontend/src/components/templates/modern/index.tsx (Sincronizado)
+// Endereço: apps/frontend/src/components/templates/modern/index.tsx
 'use client';
 
 import { useContext } from 'react'; 
 import { AuthContext } from '@/contexts/AuthProvider';
 import { useAttestation } from '@/contexts/AttestationContext';
 import styles from './style.module.css';
+import Image from 'next/image';
 
 export function ModernTemplate() {
   const { data: attestationData } = useAttestation();
@@ -23,8 +24,13 @@ export function ModernTemplate() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.logo}>
-          {/* Usamos a imagem de assinatura PNG aqui como logo */}
-          <img src="/signature.png" alt="Assinatura Digital Qualificada" className={styles.signatureMark} />
+          <Image 
+            src="/signature.png" 
+            alt="Assinatura Digital Qualificada" 
+            width={100} 
+            height={50} 
+            className={styles.signatureMark} 
+          />
         </div>
         <div className={styles.doctorInfo}>
           <p className={styles.doctorName}>{doctorName}</p>
@@ -51,7 +57,13 @@ export function ModernTemplate() {
           <p>Código de Validação: <strong>PRÉ-VISUALIZAÇÃO</strong></p>
         </div>
         <div className={styles.signatureImages}>
-          <img src="/assinatura_img.jpeg" alt="Selo ICP Brasil" className={styles.icpSeal} />
+          <Image 
+            src="/assinatura_img.jpeg" 
+            alt="Selo ICP Brasil" 
+            width={200} 
+            height={60} 
+            className={styles.icpSeal} 
+          />
         </div>
       </footer>
     </div>

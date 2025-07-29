@@ -1,20 +1,16 @@
-// Endereço: apps/frontend/src/components/AutocompleteSearch.tsx (VERSÃO FINAL E CORRIGIDA)
+// Endereço: apps/frontend/src/components/AutocompleteSearch.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 
-// Tipagem permanece a mesma
-type Option = { id: string | number; [key: string]: any; };
+type Option = { id: string | number; [key: string]: unknown; };
 
-// 1. ALTERAÇÃO NAS PROPS:
-//    - Trocamos 'initialQuery' por 'initialValue' para aceitar um objeto.
-//    - Adicionamos 'displayValue' para saber como exibir o objeto.
 type AutocompleteSearchProps<T extends Option> = {
   label: string;
   placeholder: string;
-  initialValue?: T | null; // <-- MUDOU DE initialQuery: string
-  displayValue: (option: T) => string; // <-- ADICIONADO
+  initialValue?: T | null;
+  displayValue: (option: T) => string;
   onSearch: (query: string) => Promise<T[]>;
   renderOption: (option: T) => JSX.Element;
   onSelect: (option: T | null) => void;
@@ -23,31 +19,24 @@ type AutocompleteSearchProps<T extends Option> = {
 export function AutocompleteSearch<T extends Option>({
   label,
   placeholder,
-  initialValue = null, // <-- MUDOU
-  displayValue, // <-- ADICIONADO
+  initialValue = null,
+  displayValue,
   onSearch,
   renderOption,
   onSelect,
 }: AutocompleteSearchProps<T>) {
 
-  // 2. ALTERAÇÃO NO ESTADO INICIAL:
-  //    - O 'query' (texto do input) agora é inicializado a partir do objeto 'initialValue'.
   const [query, setQuery] = useState(initialValue ? displayValue(initialValue) : '');
   const [results, setResults] = useState<T[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 3. ADIÇÃO DE NOVO USEEFFECT:
-  //    - Este hook garante que, se o valor inicial mudar, o texto no input também mude.
-  //    - Essencial para o nosso Context funcionar 100%.
   useEffect(() => {
     setQuery(initialValue ? displayValue(initialValue) : '');
   }, [initialValue, displayValue]);
 
 
-  // O useEffect de busca com debouncing continua o mesmo, mas ajustamos uma condição
   useEffect(() => {
-    // Se o texto do input for igual ao que deveria ser exibido pelo valor inicial, não busca.
     if (initialValue && query === displayValue(initialValue)) {
         setResults([]);
         return;
@@ -68,21 +57,18 @@ export function AutocompleteSearch<T extends Option>({
 
     return () => {
       clearTimeout(timerId);
-      setIsLoading(false); // Garante que o loading para se o componente for desmontado
+      setIsLoading(false);
     };
   }, [query, initialValue, displayValue, onSearch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    // Se o usuário apaga o texto, a seleção é invalidada
     if (e.target.value === '') {
         onSelect(null);
     }
   };
 
   const handleSelect = (option: T) => {
-    // 4. ALTERAÇÃO NO HANDLESELECT:
-    //    - Usa a função 'displayValue' para garantir consistência.
     setQuery(displayValue(option));
     onSelect(option);
     setResults([]);
@@ -99,7 +85,6 @@ export function AutocompleteSearch<T extends Option>({
     }
   }
 
-  // O JSX/HTML continua o mesmo
   return (
     <div className="relative" onBlur={() => setTimeout(() => setIsFocused(false), 200)}>
       <label htmlFor={label} className="mb-2 block text-sm font-medium text-gray-700">{label}</label>

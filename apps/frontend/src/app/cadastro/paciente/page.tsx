@@ -1,15 +1,11 @@
 // Endereço: apps/frontend/src/app/cadastro/paciente/page.tsx (versão com import corrigido)
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PublicLayout } from '@/components/PublicLayout'; // <-- A LINHA QUE FALTAVA
+import { useState } from 'react';
+import { PublicLayout } from '@/components/PublicLayout';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
-// Tipos para os dados do IBGE
-interface IBGE_UF_Response { id: number; sigla: string; nome: string; }
-interface IBGE_City_Response { id: number; nome: string; }
+import axios, { AxiosError } from 'axios';
 
 export default function PatientRegistrationPage() {
   // O estado do formulário
@@ -22,22 +18,7 @@ export default function PatientRegistrationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const [states, setStates] = useState<IBGE_UF_Response[]>([]);
-  const [cities, setCities] = useState<IBGE_City_Response[]>([]);
-
-  // Lógica para buscar estados e cidades
-  useEffect(() => {
-    axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
-      .then(response => setStates(response.data));
-  }, []);
-
-  useEffect(() => {
-    if (formData.state) {
-      axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios`)
-        .then(response => setCities(response.data));
-    }
-  }, [formData.state]);
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prevData => ({ ...prevData, [e.target.name]: e.target.value }));
   };
@@ -53,9 +34,14 @@ export default function PatientRegistrationPage() {
     try {
       await api.post('/users', { ...formData, role: 'PATIENT' });
       router.push('/login?status=success');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Ocorreu um erro ao criar a conta.';
-      setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message: string | string[] }>;
+        const errorMessage = axiosError.response?.data?.message || 'Ocorreu um erro ao criar a conta.';
+        setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      } else {
+        setError('Ocorreu um erro inesperado.');
+      }
     } finally {
       setIsLoading(false);
     }

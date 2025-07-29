@@ -1,4 +1,14 @@
 {
+  "name": "zello-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run start:dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend"
+  },
   "dependencies": {
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2"

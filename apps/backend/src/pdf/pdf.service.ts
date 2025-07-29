@@ -1,14 +1,12 @@
 // Endereço: apps/backend/src/pdf/pdf.service.ts
 
 import { Injectable, InternalServerErrorException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-// MODIFICAÇÃO: Trocamos 'launch' por 'connect' para usar um navegador remoto
 import { Browser, connect } from 'puppeteer';
 
 @Injectable()
 export class PdfService implements OnModuleInit, OnModuleDestroy {
   private browser: Browser | null = null;
 
-  // MODIFICAÇÃO: O método agora se conecta ao serviço externo Browserless.io
   async onModuleInit() {
     try {
       const apiKey = process.env.BROWSERLESS_API_KEY;
@@ -17,8 +15,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
       }
 
       console.log('Conectando ao Browserless.io...');
+      // MODIFICAÇÃO: Usando a URL de conexão correta do produto BaaS V2
       this.browser = await connect({
-        browserWSEndpoint: `wss://chrome.browserless.io?token=${apiKey}`,
+        browserWSEndpoint: `wss://production-sfo.browserless.io?token=${apiKey}`,
       });
       console.log('Conexão com Browserless.io estabelecida com sucesso.');
       

@@ -1,10 +1,11 @@
-// Endereço: apps/frontend/src/components/templates/classic/index.tsx (Corrigido)
+// Endereço: apps/frontend/src/components/templates/classic/index.tsx
 'use client';
 
 import { useContext } from 'react'; 
 import { AuthContext } from '@/contexts/AuthProvider';
 import { useAttestation } from '@/contexts/AttestationContext';
 import styles from './style.module.css';
+import Image from 'next/image';
 
 export function ClassicTemplate() {
   const { data: attestationData } = useAttestation();
@@ -42,7 +43,6 @@ export function ClassicTemplate() {
         {cid && <p className={styles.detailLine}>CID-10: {cid.code} - {cid.description}</p>}
       </main>
 
-      {/* CORREÇÃO AQUI: A estrutura do rodapé agora é idêntica à do default */}
       <footer className={styles.footer}>
         <div>
           <p>Emitido em {issueDateTime}</p>
@@ -56,14 +56,11 @@ export function ClassicTemplate() {
           </p>
         </div>
         <div className={styles.containerImg}>
-          <img
-            src="/signature.png"
-            alt="Imagem da assinatura em PNG"
-            className={styles.signatureImg}
-          />
-          <img
+          <Image
             src="/assinatura_img.jpeg"
             alt="Imagem da assinatura eletronica"
+            width={200}
+            height={60}
             className={styles.icpImg}
           />
         </div>

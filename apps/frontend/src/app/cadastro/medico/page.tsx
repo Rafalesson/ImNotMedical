@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/app/cadastro/medico/page.tsx (versão com dropdowns dinâmicos)
+// Endereço: apps/frontend/src/app/cadastro/medico/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,9 +6,9 @@ import { PublicLayout } from '@/components/PublicLayout';
 import { api } from '@/services/api';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
-import axios from 'axios'; // Usaremos axios também para a API do IBGE
+// MODIFICAÇÃO: Importado AxiosError para tipagem de erro
+import axios, { AxiosError } from 'axios';
 
-// 1. DEFINIMOS OS TIPOS PARA OS DADOS DO IBGE
 interface IBGE_UF_Response {
   id: number;
   sigla: string;
@@ -32,11 +32,9 @@ export default function DoctorRegistrationPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // 2. NOVOS ESTADOS PARA GUARDAR AS LISTAS DE ESTADOS E CIDADES
   const [states, setStates] = useState<IBGE_UF_Response[]>([]);
   const [cities, setCities] = useState<IBGE_City_Response[]>([]);
 
-  // 3. BUSCA A LISTA DE ESTADOS QUANDO O COMPONENTE MONTA
   useEffect(() => {
     axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
       .then(response => {
@@ -44,7 +42,6 @@ export default function DoctorRegistrationPage() {
       });
   }, []);
 
-  // 4. BUSCA A LISTA DE CIDADES SEMPRE QUE O ESTADO MUDA
   useEffect(() => {
     if (formData.state) {
       axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios`)
@@ -52,21 +49,21 @@ export default function DoctorRegistrationPage() {
           setCities(response.data);
         });
     }
-  }, [formData.state]); // Depende do estado selecionado
+  }, [formData.state]);
 
   const handleCepLookup = async (cep: string) => {
     const cleanedCep = cep.replace(/\D/g, '');
     if (cleanedCep.length !== 8) return;
     setIsCepLoading(true);
     try {
-      const response = await api.get(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      const response = await axios.get(`https://viacep.com.br/ws/${cleanedCep}/json/`);
       if (response.data && !response.data.erro) {
         setFormData(prevData => ({
           ...prevData,
           street: response.data.logradouro,
           neighborhood: response.data.bairro,
           city: response.data.localidade,
-          state: response.data.uf, // A atualização aqui vai disparar o useEffect de cidades
+          state: response.data.uf,
         }));
       }
     } catch (err) {
@@ -86,7 +83,6 @@ export default function DoctorRegistrationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ... lógica de submissão permanece a mesma
     if (formData.password !== formData.passwordConfirmation) {
       setError('As senhas não coincidem.');
       return;
@@ -96,9 +92,15 @@ export default function DoctorRegistrationPage() {
     try {
       await api.post('/users', { ...formData, role: 'DOCTOR' });
       router.push('/login?status=success');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Ocorreu um erro ao criar a conta.';
-      setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+    } catch (err) {
+      // MODIFICAÇÃO: Tipagem de erro segura, substituindo o 'any'
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message: string | string[] }>;
+        const errorMessage = axiosError.response?.data?.message || 'Ocorreu um erro ao criar a conta.';
+        setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      } else {
+        setError('Ocorreu um erro inesperado.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +114,6 @@ export default function DoctorRegistrationPage() {
       <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg mb-10">
         <h1 className="text-2xl font-bold text-gray-600 mb-6">Cadastro de Médico(a)</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ... fieldsets de Conta e Perfil Profissional ... */}
           <fieldset className="space-y-4">
             <legend className="text-lg font-semibold text-blue-500 border-b pb-2 mb-4">Dados da Conta</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
@@ -139,7 +140,6 @@ export default function DoctorRegistrationPage() {
                 <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} onBlur={(e) => handleCepLookup(e.target.value)} maxLength={9} className={inputStyles} />
                 {isCepLoading && <LoaderCircle className="absolute right-3 top-[34px] h-5 w-5 animate-spin text-gray-400" />}
               </div>
-              {/* 5. SUBSTITUÍMOS O INPUT DE ESTADO POR UM SELECT */}
               <div className="md:col-span-1">
                 <label className={labelStyles}>Estado</label>
                 <select name="state" value={formData.state} onChange={handleChange} className={inputStyles}>
@@ -149,7 +149,6 @@ export default function DoctorRegistrationPage() {
                   ))}
                 </select>
               </div>
-              {/* 6. SUBSTITUÍMOS O INPUT DE CIDADE POR UM SELECT */}
               <div className="md:col-span-3">
                 <label className={labelStyles}>Cidade</label>
                 <select name="city" value={formData.city} onChange={handleChange} disabled={!formData.state} className={`${inputStyles} disabled:bg-gray-100`}>

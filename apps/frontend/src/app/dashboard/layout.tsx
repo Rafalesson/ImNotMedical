@@ -1,25 +1,23 @@
-// Endereço: apps/frontend/src/app/dashboard/layout.tsx (Versão Responsiva Final)
+// Endereço: apps/frontend/src/app/dashboard/layout.tsx
 'use client';
 
 import { useState, Fragment } from 'react';
 import { Sidebar } from "@/components/sidebar";
 import { Dialog, Transition } from '@headlessui/react';
-import { Menu, X } from 'lucide-react';
+// MODIFICAÇÃO: O ícone 'X' não utilizado foi removido da importação
+import { Menu } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Estado para controlar a sidebar no mobile
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="h-[100dvh] bg-gray-100">
-      {/* --- Sidebar para Mobile (Componente de Transição) --- */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-40 lg:hidden" onClose={setSidebarOpen}>
-          {/* Fundo escurecido (overlay) */}
           <Transition.Child
             as={Fragment}
             enter="transition-opacity ease-linear duration-300"
@@ -33,7 +31,6 @@ export default function DashboardLayout({
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
-            {/* O painel da sidebar que desliza para dentro da tela */}
             <Transition.Child
               as={Fragment}
               enter="transition ease-in-out duration-300 transform"
@@ -51,14 +48,11 @@ export default function DashboardLayout({
         </Dialog>
       </Transition.Root>
 
-      {/* --- Sidebar para Desktop (Sempre visível) --- */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <Sidebar />
       </div>
 
-      {/* --- Área de Conteúdo Principal --- */}
       <div className="flex flex-1 flex-col lg:pl-64">
-        {/* Header com o botão de menu para mobile */}
         <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:hidden">
           <button 
             type="button" 
@@ -71,7 +65,6 @@ export default function DashboardLayout({
           <div className='text-lg font-bold text-blue-600'>Zello</div>
         </div>
 
-        {/* O conteúdo da página em si */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
           {children}
         </main>

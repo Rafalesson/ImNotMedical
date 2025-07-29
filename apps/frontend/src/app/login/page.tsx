@@ -1,10 +1,10 @@
-// Endereço: apps/frontend/src/app/login/page.tsx (versão que lê erros da URL)
+// Endereço: apps/frontend/src/app/login/page.tsx
 'use client';
 
-import { useContext, useState, useEffect } from 'react'; // Importamos useEffect
+import { useContext, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AuthContext } from '@/contexts/AuthProvider';
-import { useRouter, useSearchParams } from "next/navigation"; // Importamos useSearchParams
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,10 +13,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false); 
 
   const { signIn } = useContext(AuthContext);
-  const router = useRouter();
-  const searchParams = useSearchParams(); // Hook para ler os parâmetros da URL
+  const searchParams = useSearchParams();
 
-  // ESTE useEffect VERIFICA SE HÁ UMA MENSAGEM DE ERRO NA URL
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam === 'session_expired') {
@@ -25,13 +23,12 @@ export default function LoginPage() {
   }, [searchParams]);
 
   async function handleSignIn(event: React.FormEvent) {
-    // ... a função handleSignIn continua a mesma
     event.preventDefault();
     setError(null);
     setIsLoading(true);
     try {
       await signIn({ email, password });
-    } catch (err: any) {
+    } catch (_error) {
       setError('E-mail ou senha incorretos. Por favor, verifique suas credenciais.');
     } finally {
       setIsLoading(false);
@@ -73,7 +70,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Este 'div' agora mostrará tanto erros de login quanto de sessão expirada */}
                 {error && (
                   <div className="rounded-md bg-red-50 p-4">
                     <p className="text-sm font-medium text-red-700">{error}</p>

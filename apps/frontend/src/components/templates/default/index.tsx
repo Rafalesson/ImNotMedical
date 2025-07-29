@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/templates/default/index.tsx (Correção Final de Dados)
+// Endereço: apps/frontend/src/components/templates/default/index.tsx
 'use client';
 
 import { useContext } from 'react'; 
@@ -6,12 +6,12 @@ import { AuthContext } from '@/contexts/AuthProvider';
 import { useAttestation } from '@/contexts/AttestationContext';
 import styles from './style.module.css';
 import { calculateAge } from '@/utils/date';
+import Image from 'next/image';
 
 export function DefaultTemplate() {
   const { data: attestationData } = useAttestation();
   const { user } = useContext(AuthContext); 
 
-  // A checagem de dados continua a mesma
   if (!attestationData || !attestationData.patient || !user || !user.doctorProfile) {
     return <div className="p-8 text-center text-red-600">Faltam dados para gerar o preview.</div>;
   }
@@ -19,9 +19,6 @@ export function DefaultTemplate() {
   const { patient, purpose, durationInDays, cid } = attestationData;
   const { name: doctorName, crm: doctorCrm, specialty, address, phone } = user.doctorProfile;
   
-  // --- INÍCIO DA CORREÇÃO ---
-
-  // A lógica agora pega os dados diretamente do objeto 'patient' que veio da API
   const patientAge = calculateAge(patient.dateOfBirth);
 
   const getDisplaySex = (sex: 'MALE' | 'FEMALE' | 'OTHER' | null | undefined) => {
@@ -37,8 +34,6 @@ export function DefaultTemplate() {
   };
   const patientSex = getDisplaySex(patient.sex);
   
-  // --- FIM DA CORREÇÃO ---
-
   const formattedDoctorAddress = address 
     ? `${address.street}, ${address.number} - ${address.city}, ${address.state}` 
     : 'Endereço não informado';
@@ -63,7 +58,6 @@ export function DefaultTemplate() {
             <span><strong>CPF:</strong> {patient.cpf}</span>
           </div>
           <div className={styles.patientDetailGroup}>
-            {/* Usamos as variáveis corrigidas aqui */}
             <span><strong>Idade:</strong> {patientAge} anos</span>
             <span><strong>Sexo:</strong> {patientSex}</span>
           </div>
@@ -98,14 +92,11 @@ export function DefaultTemplate() {
           </p>
         </div>
         <div className={styles.containerImg}>
-          <img
-            src="/signature.png"
-            alt="Imagem da assinatura em PNG"
-            className={styles.signatureImg}
-          />
-          <img
+          <Image
             src="/assinatura_img.jpeg"
             alt="Imagem da assinatura eletronica"
+            width={200}
+            height={60}
             className={styles.icpImg}
           />
         </div>

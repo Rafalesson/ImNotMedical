@@ -1,10 +1,11 @@
 // Endereço: apps/frontend/src/app/redefinir-senha/reset-password-form.tsx
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/services/api';
+import axios, { AxiosError } from 'axios';
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -17,7 +18,6 @@ export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Se não houver token na URL, redireciona para o login após um momento
   useEffect(() => {
     if (!token) {
       setTimeout(() => {
@@ -47,15 +47,19 @@ export function ResetPasswordForm() {
         passwordConfirmation,
       });
       setSuccess(response.data.message);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Ocorreu um erro. Tente novamente.';
-      setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message: string | string[] }>;
+        const errorMessage = axiosError.response?.data?.message || 'Ocorreu um erro. Tente novamente.';
+        setError(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      } else {
+        setError('Ocorreu um erro inesperado.');
+      }
     } finally {
       setIsLoading(false);
     }
   }
 
-  // Se o token não existir, mostra uma mensagem de erro
   if (!token) {
     return (
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg">
@@ -65,7 +69,6 @@ export function ResetPasswordForm() {
     );
   }
 
-  // Se a senha foi redefinida com sucesso, mostra a mensagem de sucesso
   if (success) {
     return (
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg">
@@ -78,7 +81,6 @@ export function ResetPasswordForm() {
     );
   }
 
-  // Formulário principal de redefinição de senha
   return (
     <div className="w-full max-w-md rounded-lg bg-white px-8 py-12 shadow-lg">
       <div className="text-center">

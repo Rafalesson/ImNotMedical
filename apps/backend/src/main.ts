@@ -11,7 +11,8 @@ async function bootstrap() {
   // 1. Criamos uma "lista de permissões" com as origens que confiamos.
   const whitelist = [
     'http://localhost:3001', 
-    'http://192.168.0.2:3001'
+    'http://192.168.0.2:3001',
+    'http://172.20.80.1:3001' // MODIFICAÇÃO: Adicionada a nova origem permitida
   ];
 
   app.enableCors({

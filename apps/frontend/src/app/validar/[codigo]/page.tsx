@@ -1,7 +1,8 @@
-// Endereço: apps/frontend/src/app/validar/page.tsx (versão final)
+// Endereço: apps/frontend/src/app/validar/[codigo]/page.tsx
+
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+// MODIFICAÇÃO: useSearchParams não é mais necessário
 import React, { useEffect, useState } from 'react';
 import { HelpCircle, Search } from 'lucide-react';
 import { ValidationResult } from '@/components/ValidationResult';
@@ -10,30 +11,39 @@ import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 
-const fetchCertificate = async (code: string) => {
-  if (!code.trim()) return null;
-  const response = await api.get(`/certificates/validate/${code}`);
+const fetchCertificate = async (code: string | null) => {
+  // Se o código for nulo ou vazio, não faz a requisição
+  if (!code || !code.trim()) return null;
+  
+  // MODIFICAÇÃO: Chamando o novo endpoint PÚBLICO que criamos no backend
+  const response = await api.get(`/certificates/public/validate/${code}`);
   return response.data;
 };
 
 
-export default function ValidatePage() {
-  const searchParams = useSearchParams();
-  const codeFromUrl = searchParams.get('codigo') || '';
+// MODIFICAÇÃO: A página agora recebe 'params' para capturar o código da URL
+export default function ValidatePage({ params }: { params: { codigo: string } }) {
+  // MODIFICAÇÃO: O código da URL vem dos params, não mais do searchParams
+  const codeFromUrl = params.codigo || '';
   const [code, setCode] = useState(codeFromUrl);
 
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['certificate', code],
     queryFn: () => fetchCertificate(code),
-    enabled: false,
+    // MODIFICAÇÃO: A query agora é ativada se 'code' tiver um valor, 
+    // e desativada para a busca automática inicial se o código da URL estiver presente.
+    enabled: false, 
     retry: 1,
   });
 
   const handleValidate = (event?: React.FormEvent) => {
     event?.preventDefault();
-    refetch();
+    if (code.trim()) {
+      refetch();
+    }
   };
 
+  // MODIFICAÇÃO: O useEffect agora simplesmente dispara a busca se o código vier da URL.
   useEffect(() => {
     if (codeFromUrl) {
       refetch();
@@ -44,10 +54,6 @@ export default function ValidatePage() {
 
   return (
     <PublicLayout>
-      {/* Este é o "card" de conteúdo. Ele é o único filho direto do PublicLayout.
-        O PublicLayout é agora o único responsável por centralizá-lo na tela.
-        Note que removemos o 'div' extra que tentava controlar o layout daqui.
-      */}
       <div className="w-full max-w-xl rounded-lg bg-white p-8 shadow-lg lg:max-w-3xl">
         <h1 className="mb-2 text-center text-2xl font-bold text-gray-800">
           Validador de Documentos

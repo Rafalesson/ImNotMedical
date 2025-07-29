@@ -1,4 +1,5 @@
-// Endereço: apps/backend/src/certificate/certificate.controller.ts (Versão Final e Organizada)
+// Endereço: apps/backend/src/certificate/certificate.controller.ts
+
 import { 
   Controller, 
   Post, 
@@ -21,7 +22,17 @@ import { BatchDeleteDto } from './dto/batch-delete.dto';
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
+  // --- ROTA PÚBLICA PARA VALIDAÇÃO VIA QR CODE ---
+  // Este endpoint é público e não requer autenticação.
+  @Get('public/validate/:id')
+  validatePublicCertificate(@Param('id') id: string) {
+    // Reutiliza o método de serviço que já retorna dados seguros.
+    return this.certificateService.validateCertificate(id);
+  }
+  
+  // Rota antiga, mantida para possíveis usos internos autenticados.
   @Get('validate/:id')
+  @UseGuards(AuthGuard)
   validate(@Param('id') id: string) {
     return this.certificateService.validateCertificate(id);
   }
@@ -40,7 +51,6 @@ export class CertificateController {
     return { status: 'ok', message: 'Preview is handled by the client.' };
   }
 
-  // --- ROTA DEDICADA PARA O WIDGET DE ATESTADOS RECENTES ---
   @Get('recent')
   @UseGuards(AuthGuard)
   @Roles('DOCTOR')
@@ -48,7 +58,6 @@ export class CertificateController {
     return this.certificateService.findAllByDoctor(req.user.id);
   }
 
-  // Rota para a página de histórico com busca e paginação
   @Get('my-certificates')
   @UseGuards(AuthGuard)
   searchMyCertificates(

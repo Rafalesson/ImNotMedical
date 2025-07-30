@@ -12,7 +12,6 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    // --- LOG DE DIAGNÓSTICO 1: VERIFICAR DADOS DE ENTRADA ---
     console.log('--- INICIANDO CRIAÇÃO DE USUÁRIO ---');
     console.log('Dados recebidos do formulário:', JSON.stringify(createUserDto, null, 2));
 
@@ -26,6 +25,11 @@ export class UserService {
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new BadRequestException('Um usuário com este e-mail já existe.');
+    }
+    
+    // MODIFICAÇÃO: Adicionada validação explícita para campos de paciente
+    if (role === Role.PATIENT && (!cpf || !dateOfBirth)) {
+      throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,8 +56,8 @@ export class UserService {
           patientProfile: role === Role.PATIENT ? {
             create: {
               name,
-              cpf: cpf || '',
-              dateOfBirth: new Date(dateOfBirth!),
+              cpf: cpf, // O CPF agora é garantido pela validação acima
+              dateOfBirth: new Date(dateOfBirth), // A data agora é garantida pela validação
               sex,
               phone,
               ...(addressData && { address: { create: addressData } })
@@ -65,13 +69,12 @@ export class UserService {
           patientProfile: { include: { address: true } }
         }
       });
-
+      
       console.log('--- USUÁRIO CRIADO COM SUCESSO ---');
       const { password: _, ...result } = user;
       return result;
 
     } catch (error) {
-      // --- LOG DE DIAGNÓSTICO 2: CAPTURAR QUALQUER ERRO ---
       console.error('--- ERRO CAPTURADO NO USER SERVICE ---');
       console.error('Mensagem do Erro:', error.message);
       console.error('Objeto de Erro Completo:', JSON.stringify(error, null, 2));

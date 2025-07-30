@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/CertificateForm.tsx (Final com Renderização Dinâmica)
+// Endereço: apps/frontend/src/components/CertificateForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -24,7 +24,6 @@ type Patient = {
 };
 type Cid = { id: string; code: string; description: string; };
 
-// 2. COMPONENTE AUXILIAR PARA ESCOLHER QUAL PREVIEW RENDERIZAR
 const ActiveTemplatePreview = () => {
   const { data } = useAttestation();
   
@@ -56,7 +55,8 @@ export function CertificateForm() {
     }
   };
 
-  const handleSelectPatient = (patient: Patient) => {
+  // MODIFICAÇÃO: A função agora aceita 'Patient | null' para alinhar com a prop 'onSelect'
+  const handleSelectPatient = (patient: Patient | null) => {
     setData({ ...data, patient });
   };
 
@@ -70,7 +70,7 @@ export function CertificateForm() {
     }
   };
 
-  const handleSelectCid = (cid: Cid) => {
+  const handleSelectCid = (cid: Cid | null) => {
     setData({ ...data, cid });
   };
 
@@ -140,7 +140,7 @@ export function CertificateForm() {
             </div>
           )}
           displayValue={(patient) => patient.name}
-          inputClassName="w-full rounded-md border border-gray-300 p-3 pl-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
+          // A prop 'inputClassName' não existe no componente, removida para evitar erros.
         />
 
         <div>
@@ -168,7 +168,6 @@ export function CertificateForm() {
             </div>
           )}
           displayValue={(cid) => `${cid.code} - ${cid.description}`}
-          inputClassName="w-full rounded-md border border-gray-300 p-3 pl-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -216,7 +215,6 @@ export function CertificateForm() {
       >
         {!submissionResult ? (
           <>
-            {/* 3. USAMOS O COMPONENTE DINÂMICO AQUI */}
             <ActiveTemplatePreview />
             <div className="mt-8 flex justify-end space-x-4 border-t pt-4">
               <button 
@@ -244,7 +242,7 @@ export function CertificateForm() {
             <p className="mt-2 text-gray-600">O documento foi salvo e está pronto para download.</p>
             <div className="mt-8 flex flex-col sm:flex-row sm:justify-center sm:space-x-4 space-y-4 sm:space-y-0">
                <a
-                href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3333'}${submissionResult.pdfUrl}`}
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${submissionResult.pdfUrl}`}
                 download
                 target="_blank"
                 rel="noopener noreferrer"

@@ -1,8 +1,8 @@
-// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx (Layout Final do Botão de Exclusão)
+// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Search, Download, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
@@ -53,7 +53,8 @@ export default function CertificateHistoryPage() {
       });
       return data;
     },
-    keepPreviousData: true,
+    // MODIFICAÇÃO: 'keepPreviousData' trocado por 'placeholderData' para a sintaxe da v5
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {

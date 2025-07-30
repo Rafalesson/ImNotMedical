@@ -12,9 +12,6 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    console.log('--- INICIANDO CRIAÇÃO DE USUÁRIO ---');
-    console.log('Dados recebidos do formulário:', JSON.stringify(createUserDto, null, 2));
-
     const {
       email, password, role, name, phone,
       crm, specialty,
@@ -27,58 +24,60 @@ export class UserService {
       throw new BadRequestException('Um usuário com este e-mail já existe.');
     }
     
-    // Adicionada validação explícita para campos de paciente
-    if (role === Role.PATIENT && (!cpf || !dateOfBirth)) {
-      throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
-    }
-    
     const hashedPassword = await bcrypt.hash(password, 10);
     const addressData = (street && number && neighborhood && city && state && zipCode) ? {
       street, number, complement, neighborhood, city, state, zipCode
     } : undefined;
 
+    // MODIFICAÇÃO: A lógica foi refatorada para construir o objeto 'data' de forma incremental,
+    // garantindo a segurança de tipos.
+    const data: Prisma.UserCreateInput = {
+      email,
+      password: hashedPassword,
+      role,
+      phone,
+    };
+
+    if (role === Role.DOCTOR) {
+      data.doctorProfile = {
+        create: {
+          name,
+          crm: crm || '',
+          specialty,
+          phone,
+          ...(addressData && { address: { create: addressData } })
+        }
+      };
+    } else if (role === Role.PATIENT) {
+      if (!cpf || !dateOfBirth) {
+        throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
+      }
+      data.patientProfile = {
+        create: {
+          name,
+          cpf,
+          dateOfBirth: new Date(dateOfBirth),
+          sex,
+          phone,
+          ...(addressData && { address: { create: addressData } })
+        }
+      };
+    }
+
     try {
       const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          role,
-          phone,
-          doctorProfile: role === Role.DOCTOR ? {
-            create: { 
-              name, 
-              crm: crm || '', 
-              specialty, 
-              phone, 
-              ...(addressData && { address: { create: addressData } }) 
-            },
-          } : undefined,
-          patientProfile: role === Role.PATIENT ? {
-            create: {
-              name,
-              cpf: cpf, // O CPF agora é garantido pela validação acima
-              dateOfBirth: new Date(dateOfBirth), // A data agora é garantida pela validação
-              sex,
-              phone,
-              ...(addressData && { address: { create: addressData } })
-            },
-          } : undefined,
-        },
+        data, // Usamos o objeto 'data' que construímos
         include: {
           doctorProfile: { include: { address: true } },
           patientProfile: { include: { address: true } }
         }
       });
       
-      console.log('--- USUÁRIO CRIADO COM SUCESSO ---');
       const { password: _, ...result } = user;
       return result;
 
     } catch (error) {
-      console.error('--- ERRO CAPTURADO NO USER SERVICE ---');
-      console.error('Mensagem do Erro:', error.message);
-      console.error('Objeto de Erro Completo:', JSON.stringify(error, null, 2));
-
+      console.error("Erro inesperado ao criar usuário:", error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           const fields = (error.meta?.target as string[]) || [];

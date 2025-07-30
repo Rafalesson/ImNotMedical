@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/user/user.service.ts (versão com data de nascimento corrigida)
+// Endereço: apps/backend/src/user/user.service.ts
 
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -37,14 +37,18 @@ export class UserService {
           role,
           phone,
           doctorProfile: role === Role.DOCTOR ? {
-            create: { name, crm: crm || '', specialty, phone, ...(addressData && { address: { create: addressData } }) },
+            create: { 
+              name, 
+              crm: crm || '', 
+              specialty, 
+              phone, 
+              ...(addressData && { address: { create: addressData } }) 
+            },
           } : undefined,
           patientProfile: role === Role.PATIENT ? {
             create: {
               name,
               cpf: cpf || '',
-              // CORREÇÃO: Agora temos certeza que dateOfBirth existe para pacientes.
-              // Usamos '!' para dizer ao TypeScript: "confie em mim, este valor não será nulo/undefined aqui".
               dateOfBirth: new Date(dateOfBirth!),
               sex,
               phone,

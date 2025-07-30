@@ -38,7 +38,8 @@ export function useCertificatePreview() {
             }
           });
         } else {
-          const errorMessage = (error as AxiosError)?.response?.data?.message || 'Não foi possível gerar a pré-visualização.';
+          // MODIFICAÇÃO: Adicionada asserção de tipo para garantir que 'message' existe
+          const errorMessage = ((error as AxiosError)?.response?.data as { message?: string })?.message || 'Não foi possível gerar a pré-visualização.';
           alert(`Erro: ${errorMessage}`);
         }
 

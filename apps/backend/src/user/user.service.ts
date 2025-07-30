@@ -22,18 +22,25 @@ export class UserService {
       street, number, complement, neighborhood, city, state, zipCode
     } = createUserDto;
 
+    console.log('Passo 1: Verificando se usuário existe...');
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new BadRequestException('Um usuário com este e-mail já existe.');
     }
     
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (role === Role.PATIENT && (!cpf || !dateOfBirth)) {
+      throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
+    }
+    
+    console.log('Passo 2: Criptografando a senha (TEMPORARIAMENTE DESATIVADO)...');
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password; // Usando a senha pura APENAS para teste
+
+    console.log('Passo 3: Preparando dados do endereço...');
     const addressData = (street && number && neighborhood && city && state && zipCode) ? {
       street, number, complement, neighborhood, city, state, zipCode
     } : undefined;
 
-    // MODIFICAÇÃO: A lógica foi refatorada para construir o objeto 'data' de forma incremental,
-    // garantindo a segurança de tipos.
     const data: Prisma.UserCreateInput = {
       email,
       password: hashedPassword,
@@ -42,34 +49,15 @@ export class UserService {
     };
 
     if (role === Role.DOCTOR) {
-      data.doctorProfile = {
-        create: {
-          name,
-          crm: crm || '',
-          specialty,
-          phone,
-          ...(addressData && { address: { create: addressData } })
-        }
-      };
+      data.doctorProfile = { create: { name, crm: crm || '', specialty, phone, ...(addressData && { address: { create: addressData } }) } };
     } else if (role === Role.PATIENT) {
-      if (!cpf || !dateOfBirth) {
-        throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
-      }
-      data.patientProfile = {
-        create: {
-          name,
-          cpf,
-          dateOfBirth: new Date(dateOfBirth),
-          sex,
-          phone,
-          ...(addressData && { address: { create: addressData } })
-        }
-      };
+      data.patientProfile = { create: { name, cpf, dateOfBirth: new Date(dateOfBirth), sex, phone, ...(addressData && { address: { create: addressData } }) } };
     }
 
     try {
+      console.log('Passo 4: Chegou ao bloco try. Tentando criar no banco...');
       const user = await this.prisma.user.create({
-        data, // Usamos o objeto 'data' que construímos
+        data,
         include: {
           doctorProfile: { include: { address: true } },
           patientProfile: { include: { address: true } }

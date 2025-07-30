@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/app/paciente/dashboard/page.tsx (versão com estilos corrigidos)
+// Endereço: apps/frontend/src/app/paciente/dashboard/page.tsx
 'use client';
 
 import { AuthContext } from "@/contexts/AuthProvider";
@@ -15,7 +15,8 @@ const serviceCards = [
 
 export default function PatientDashboard() {
   const { user } = useContext(AuthContext);
-  const firstName = user?.name?.split(' ')[0] || '';
+  // MODIFICAÇÃO: Corrigido o caminho para acessar o nome do paciente
+  const firstName = user?.patientProfile?.name?.split(' ')[0] || '';
 
   return (
     <div className="max-w-5xl mx-auto mt-4 px-4">
@@ -24,7 +25,6 @@ export default function PatientDashboard() {
         <p className="mt-2 text-gray-600">O que você precisa hoje?</p>
         
         <div className="mt-6 relative">
-          {/* MUDANÇA AQUI: Adicionadas classes de cor de texto e de foco */}
           <input 
             type="search"
             placeholder="Busque por médicos, especialidades, exames..."

@@ -12,6 +12,10 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    // --- LOG DE DIAGNÓSTICO 1: VERIFICAR DADOS DE ENTRADA ---
+    console.log('--- INICIANDO CRIAÇÃO DE USUÁRIO ---');
+    console.log('Dados recebidos do formulário:', JSON.stringify(createUserDto, null, 2));
+
     const {
       email, password, role, name, phone,
       crm, specialty,
@@ -62,17 +66,22 @@ export class UserService {
         }
       });
 
+      console.log('--- USUÁRIO CRIADO COM SUCESSO ---');
       const { password: _, ...result } = user;
       return result;
 
     } catch (error) {
+      // --- LOG DE DIAGNÓSTICO 2: CAPTURAR QUALQUER ERRO ---
+      console.error('--- ERRO CAPTURADO NO USER SERVICE ---');
+      console.error('Mensagem do Erro:', error.message);
+      console.error('Objeto de Erro Completo:', JSON.stringify(error, null, 2));
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           const fields = (error.meta?.target as string[]) || [];
           throw new BadRequestException(`Os seguintes dados já estão em uso: ${fields.join(', ')}.`);
         }
       }
-      console.error("Erro inesperado ao criar usuário:", error);
       throw new BadRequestException('Não foi possível criar o usuário devido a um erro interno. Verifique os dados fornecidos.');
     }
   }

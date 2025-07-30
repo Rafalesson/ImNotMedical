@@ -19,8 +19,10 @@ export function DefaultTemplate() {
   const { patient, purpose, durationInDays, cid } = attestationData;
   const { name: doctorName, crm: doctorCrm, specialty, address, phone } = user.doctorProfile;
   
-  // MODIFICAÇÃO: Corrigido o caminho para acessar os dados do paciente
-  const patientAge = calculateAge(patient.patientProfile?.dateOfBirth);
+  // MODIFICAÇÃO: Adicionada verificação para evitar passar 'undefined' para a função
+  const patientAge = patient.patientProfile?.dateOfBirth 
+    ? calculateAge(patient.patientProfile.dateOfBirth) 
+    : 'N/A';
 
   const getDisplaySex = (sex: 'MALE' | 'FEMALE' | 'OTHER' | null | undefined) => {
     if (!sex) return 'Não informado';
@@ -33,7 +35,7 @@ export function DefaultTemplate() {
         return 'Outro';
     }
   };
-  // MODIFICAÇÃO: Corrigido o caminho para acessar os dados do paciente
+
   const patientSex = getDisplaySex(patient.patientProfile?.sex);
   
   const formattedDoctorAddress = address 

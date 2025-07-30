@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as bcrypt from 'bcrypt'; 
 const prisma = new PrismaClient();
 
+// Suas funções auxiliares permanecem as mesmas
 function stripHtml(html: string): string {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').trim();
@@ -20,6 +21,9 @@ function formatDescription(text: string): string {
 async function main() {
   console.log('Iniciando o processo de seeding completo...');
 
+  // ==========================================================
+  // PARTE 1: LÓGICA EXISTENTE PARA POPULAR CID-10
+  // ==========================================================
   await prisma.cidCode.deleteMany({});
   console.log('Tabela CidCode limpa com sucesso.');
 
@@ -51,12 +55,17 @@ async function main() {
 
   console.log(`Seeding de CIDs finalizado! ${cid10CleanData.length} códigos foram adicionados.`);
 
+
+  // ==========================================================
+  // PARTE 2: NOVA LÓGICA PARA CRIAR USUÁRIOS DE TESTE
+  // ==========================================================
   console.log('Iniciando criação de usuários de teste...');
 
+  // Limpa usuários de teste antigos para evitar duplicidade
   await prisma.user.deleteMany({
     where: {
       email: {
-        in: ['dr.barbara@zello.com', 'livia.santos@email.com'], // Mantido como no original, mas você mencionou dr.teste
+        in: ['dr.barbara@zello.com', 'livia.santos@email.com'],
       },
     },
   });
@@ -65,15 +74,16 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash('12345678', 10);
 
+  // --- CRIAÇÃO DO MÉDICO DE TESTE ---
   const doctor = await prisma.user.create({
     data: {
-      email: 'dr.barbara@zello.com', 
+      email: 'dr.barbara@zello.com',
       phone: '11999999999',
       password: hashedPassword,
       role: Role.DOCTOR,
       doctorProfile: {
         create: {
-          name: 'Dra. Barbara da Silva', 
+          name: 'Dra. Barbara da Silva',
           crm: '12345SP',
           specialty: 'Cardiologia',
           address: {
@@ -92,15 +102,16 @@ async function main() {
   });
   console.log(`Médico de teste criado: ${doctor.email}`);
 
+  // --- CRIAÇÃO DO PACIENTE DE TESTE ---
   const patient = await prisma.user.create({
     data: {
-      email: 'livia.santos@email.com', 
+      email: 'livia.santos@email.com',
       phone: '21999999999',
       password: hashedPassword,
       role: Role.PATIENT,
       patientProfile: {
         create: {
-          name: 'Livia Santos', 
+          name: 'Livia Santos',
           cpf: '111.222.333-44',
           dateOfBirth: new Date('1990-05-15T00:00:00.000Z'),
         },

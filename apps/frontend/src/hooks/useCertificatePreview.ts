@@ -1,13 +1,13 @@
 // Endereço: apps/frontend/src/hooks/useCertificatePreview.ts
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCertificateStore } from '@/stores/certificateStore';
+import { useAttestation } from '@/contexts/AttestationContext';
 import { api } from '@/services/api';
 import { AxiosError } from 'axios';
 
 export function useCertificatePreview() {
   const router = useRouter();
-  const { formData } = useCertificateStore();
+  const { data: formData } = useAttestation();
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -1,7 +1,19 @@
 // src/components/ValidationResult.tsx
 'use client';
 import { CheckCircle, AlertTriangle } from 'lucide-react';
-export const ValidationResult = ({ result, error }) => {
+
+interface ValidationResultProps {
+  result: {
+    patientName: string;
+    doctorName: string;
+    doctorCrm: string;
+    durationInDays: number;
+    issuedAt: string;
+  } | null;
+  error: string | null;
+}
+
+export const ValidationResult = ({ result, error }: ValidationResultProps) => {
   if (error) {
     return (
       <div className="rounded-md border border-red-200 bg-red-50 p-4 text-center w-full">
@@ -10,6 +22,7 @@ export const ValidationResult = ({ result, error }) => {
       </div>
     );
   }
+
   if (result) {
     return (
       <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center w-full">
@@ -24,5 +37,6 @@ export const ValidationResult = ({ result, error }) => {
       </div>
     );
   }
+  
   return null;
 };

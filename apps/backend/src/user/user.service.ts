@@ -12,12 +12,19 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+     // --- LOG DE DIAGNÓSTICO 1 ---
+    console.log('--- INICIANDO CRIAÇÃO DE USUÁRIO ---');
+    console.log('Dados recebidos do formulário:', JSON.stringify(createUserDto, null, 2));
+    // --- FIM DO LOG DE DIAGNÓSTICO 1 ---
+    
+    // Verifica se o e-mail já está cadastrado
     const {
       email, password, role, name, phone,
       crm, specialty,
       cpf, dateOfBirth, sex,
       street, number, complement, neighborhood, city, state, zipCode
     } = createUserDto;
+
 
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -29,7 +36,6 @@ export class UserService {
       street, number, complement, neighborhood, city, state, zipCode
     } : undefined;
 
-    // MODIFICAÇÃO: A lógica foi refatorada para construir o objeto 'data' de forma incremental,
     // garantindo a segurança de tipos.
     const data: Prisma.UserCreateInput = {
       email,
@@ -77,7 +83,13 @@ export class UserService {
       return result;
 
     } catch (error) {
-      console.error("Erro inesperado ao criar usuário:", error);
+      // --- LOG DE DIAGNÓSTICO 2 ---
+      console.error('--- ERRO CAPTURADO NO USER SERVICE ---');
+      console.error('Mensagem do Erro:', error.message);
+      console.error('Objeto de Erro Completo:', JSON.stringify(error, null, 2));
+      // --- FIM DO LOG DE DIAGNÓSTICO 2 ---
+
+      // Verifica se o erro é do Prisma e trata o caso de duplicação de dados
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           const fields = (error.meta?.target as string[]) || [];

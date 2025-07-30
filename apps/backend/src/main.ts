@@ -38,7 +38,8 @@ async function bootstrap() {
 
   const httpAdapterHost = app.get(HttpAdapterHost);
 
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+  // MODIFICAÇÃO: A linha abaixo foi comentada para desativar o filtro de exceções temporariamente.
+  // app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
   await app.listen(3333);
 }

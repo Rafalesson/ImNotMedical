@@ -1,4 +1,4 @@
-// apps/frontend/src/contexts/AttestationContext.tsx
+// Endereço: apps/frontend/src/contexts/AttestationContext.tsx
 
 'use client';
 
@@ -13,6 +13,7 @@ type AttestationData = {
   cid: Cid | null;
   purpose: string;
   durationInDays: number | '';
+  templateId: string;
 };
 
 // Tipo para o valor do nosso contexto
@@ -28,6 +29,7 @@ const initialState: AttestationData = {
   cid: null,
   purpose: '',
   durationInDays: 1,
+  templateId: 'default',
 };
 
 // Criamos o contexto com um valor padrão

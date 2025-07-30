@@ -1,4 +1,4 @@
-// src/app/dashboard/atestados/preview/page.tsx 
+// Endereço: apps/frontend/src/app/dashboard/atestados/preview/page.tsx 
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -7,18 +7,23 @@ import { api } from '@/services/api';
 import { CheckCircle, XCircle, Loader2, Download, Home } from 'lucide-react';
 import { useAttestation } from '@/contexts/AttestationContext'; 
 
+// MODIFICAÇÃO: Adicionada uma interface para a resposta da criação do atestado
+interface FinalCertificateResponse {
+  pdfUrl: string;
+  // Adicione outras propriedades que a API possa retornar, se houver
+}
+
 export default function PreviewPage() {
   const router = useRouter();
-  // 2. Puxa os dados e as funções do contexto
   const { data: formData, clearData } = useAttestation(); 
 
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [finalCertificate, setFinalCertificate] = useState(null);
+  // MODIFICAÇÃO: O estado agora usa a interface que criamos
+  const [finalCertificate, setFinalCertificate] = useState<FinalCertificateResponse | null>(null);
 
   const handleConfirmAndIssue = useCallback(async () => {
-    // 3. A leitura do sessionStorage foi REMOVIDA. Os dados vêm do 'formData'.
     if (!formData || !formData.patient) {
       alert('Não foi possível encontrar os dados do formulário. Por favor, tente novamente.');
       router.push('/dashboard/atestados/novo');
@@ -35,7 +40,7 @@ export default function PreviewPage() {
     try {
       const response = await api.post('/certificates', dtoForCreation);
       setFinalCertificate(response.data);
-      clearData(); // 4. Limpa os dados do contexto após o sucesso!
+      clearData();
     } catch (error) {
       console.error('Erro ao emitir atestado:', error);
       alert('Falha ao emitir o atestado final.');
@@ -45,7 +50,6 @@ export default function PreviewPage() {
   }, [formData, router, clearData]);
 
   useEffect(() => {
-    // 5. A leitura do sessionStorage foi REMOVIDA.
     if (!formData || !formData.patient) {
       router.replace('/dashboard/atestados/novo');
       return;
@@ -77,12 +81,12 @@ export default function PreviewPage() {
   }, [formData, router]);
 
   const handleEdit = () => {
-    // Ela simplesmente navega, e o formulário vai ler os dados do contexto.
     router.push('/dashboard/atestados/novo');
   };
 
   if (finalCertificate) {
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3333';
+    // A variável de ambiente correta é NEXT_PUBLIC_API_URL
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
     const downloadUrl = `${backendUrl}${finalCertificate.pdfUrl}`;
     return (
       <div className="flex flex-col items-center justify-center text-center p-8">

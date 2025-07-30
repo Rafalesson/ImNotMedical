@@ -4,11 +4,20 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-// Tipos para os dados do nosso formulário
-type Patient = { id: string; name: string; cpf: string; userId: string; };
-type Cid = { id: string; code: string; description: string; };
+// MODIFICAÇÃO: Adicionada a palavra-chave 'export' para que o tipo 'Patient' possa ser importado por outros arquivos.
+export type Patient = { 
+  id: string; 
+  name: string; 
+  cpf: string; 
+  userId: string;
+  patientProfile?: { // Adicionando patientProfile para consistência com outros usos
+    dateOfBirth: string;
+    sex: 'MALE' | 'FEMALE' | 'OTHER';
+  };
+};
+export type Cid = { id: string; code: string; description: string; };
 
-type AttestationData = {
+export type AttestationData = {
   patient: Patient | null;
   cid: Cid | null;
   purpose: string;
@@ -58,7 +67,7 @@ export function AttestationProvider({ children }: { children: ReactNode }) {
 export function useAttestation() {
   const context = useContext(AttestationContext);
   if (context === undefined) {
-    throw new Error('useAttestation must be used within a AttestationProvider');
+    throw new Error('useAttestation must be used within an AttestationProvider');
   }
   return context;
 }

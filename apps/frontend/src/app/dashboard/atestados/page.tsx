@@ -53,7 +53,6 @@ export default function CertificateHistoryPage() {
       });
       return data;
     },
-    // MODIFICAÇÃO: 'keepPreviousData' trocado por 'placeholderData' para a sintaxe da v5
     placeholderData: keepPreviousData,
   });
 
@@ -220,7 +219,8 @@ export default function CertificateHistoryPage() {
           </a>
           <button
             onClick={() => openSingleDeleteModal(cert.id)}
-            disabled={deleteMutation.isLoading}
+            // MODIFICAÇÃO: .isLoading alterado para .isPending
+            disabled={deleteMutation.isPending}
             className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
             title="Excluir Atestado"
           >
@@ -270,7 +270,8 @@ export default function CertificateHistoryPage() {
                     <button
                       onClick={openBatchDeleteModal}
                       className="p-1 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-50"
-                      disabled={batchDeleteMutation.isLoading}
+                      // MODIFICAÇÃO: .isLoading alterado para .isPending
+                      disabled={batchDeleteMutation.isPending}
                       title={`Excluir ${selectedIds.length} atestado(s)`}
                     >
                       <Trash2 size={16} />
@@ -361,9 +362,11 @@ export default function CertificateHistoryPage() {
             type="button"
             className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
             onClick={handleConfirmDelete}
-            disabled={deleteMutation.isLoading || batchDeleteMutation.isLoading}
+            // MODIFICAÇÃO: .isLoading alterado para .isPending
+            disabled={deleteMutation.isPending || batchDeleteMutation.isPending}
           >
-            {(deleteMutation.isLoading || batchDeleteMutation.isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {/* MODIFICAÇÃO: .isLoading alterado para .isPending */}
+            {(deleteMutation.isPending || batchDeleteMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Excluir
           </button>
           <button

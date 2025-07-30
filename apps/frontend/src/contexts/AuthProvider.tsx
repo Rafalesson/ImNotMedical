@@ -41,10 +41,15 @@ interface User {
   patientProfile?: PatientProfile;
 }
 
+interface SignInCredentials {
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  signIn: (data: any) => Promise<void>;
+  signIn: (data: SignInCredentials) => Promise<void>;
   signOut: () => void;
   loading: boolean;
 }
@@ -80,7 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  async function signIn({ email, password }: any) {
+  interface SignInCredentials {
+    email: string;
+    password: string;
+  }
+
+  async function signIn({ email, password }: SignInCredentials) {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       const { access_token } = data;

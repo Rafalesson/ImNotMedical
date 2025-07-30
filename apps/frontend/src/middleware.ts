@@ -6,10 +6,10 @@ import { jwtVerify } from 'jose';
 
 // Função para obter a chave secreta de forma segura
 function getJwtSecretKey() {
-  const secret = process.env.JWT_SECRET;
+  const secret = process.env.NEXT_PUBLIC_JWT_SECRET;
   if (!secret) {
     // Este erro acontecerá no servidor se a variável de ambiente não for definida
-    throw new Error('JWT_SECRET não está definido nas variáveis de ambiente!');
+    throw new Error('NEXT_PUBLIC_JWT_SECRET não está definido nas variáveis de ambiente!');
   }
   return new TextEncoder().encode(secret);
 }

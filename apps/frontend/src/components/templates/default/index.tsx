@@ -1,5 +1,5 @@
 // Endereço: apps/frontend/src/components/templates/default/index.tsx
-'use client';
+'use-client';
 
 import { useContext } from 'react'; 
 import { AuthContext } from '@/contexts/AuthProvider';
@@ -19,7 +19,8 @@ export function DefaultTemplate() {
   const { patient, purpose, durationInDays, cid } = attestationData;
   const { name: doctorName, crm: doctorCrm, specialty, address, phone } = user.doctorProfile;
   
-  const patientAge = calculateAge(patient.dateOfBirth);
+  // MODIFICAÇÃO: Corrigido o caminho para acessar os dados do paciente
+  const patientAge = calculateAge(patient.patientProfile?.dateOfBirth);
 
   const getDisplaySex = (sex: 'MALE' | 'FEMALE' | 'OTHER' | null | undefined) => {
     if (!sex) return 'Não informado';
@@ -32,7 +33,8 @@ export function DefaultTemplate() {
         return 'Outro';
     }
   };
-  const patientSex = getDisplaySex(patient.sex);
+  // MODIFICAÇÃO: Corrigido o caminho para acessar os dados do paciente
+  const patientSex = getDisplaySex(patient.patientProfile?.sex);
   
   const formattedDoctorAddress = address 
     ? `${address.street}, ${address.number} - ${address.city}, ${address.state}` 

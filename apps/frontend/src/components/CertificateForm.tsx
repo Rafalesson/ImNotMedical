@@ -5,23 +5,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { AutocompleteSearch } from './AutocompleteSearch';
-import { useAttestation } from '@/contexts/AttestationContext';
+import { useAttestation, Patient } from '@/contexts/AttestationContext';
 import { Modal } from './common/Modal';
 import { DefaultTemplate } from './templates/default';
 import { ModernTemplate } from './templates/modern'; 
 import { ClassicTemplate } from './templates/classic';
 import { CheckCircle, Download, Home, Loader2 } from 'lucide-react';
 
-type Patient = { 
-  id: string; 
-  name: string; 
-  cpf: string; 
-  userId: string;
-  patientProfile: {
-    dateOfBirth: string;
-    sex: 'MALE' | 'FEMALE' | 'OTHER';
-  };
-};
 type Cid = { id: string; code: string; description: string; };
 
 const ActiveTemplatePreview = () => {
@@ -55,7 +45,6 @@ export function CertificateForm() {
     }
   };
 
-  // MODIFICAÇÃO: A função agora aceita 'Patient | null' para alinhar com a prop 'onSelect'
   const handleSelectPatient = (patient: Patient | null) => {
     setData({ ...data, patient });
   };
@@ -140,7 +129,6 @@ export function CertificateForm() {
             </div>
           )}
           displayValue={(patient) => patient.name}
-          // A prop 'inputClassName' não existe no componente, removida para evitar erros.
         />
 
         <div>

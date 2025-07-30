@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/hooks/useCertificatePreview.ts
+// apps/frontend/src/hooks/useCertificatePreview.ts
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAttestation } from '@/contexts/AttestationContext';

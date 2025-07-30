@@ -29,8 +29,6 @@ export class UserService {
       street, number, complement, neighborhood, city, state, zipCode
     } : undefined;
 
-    // MODIFICAÇÃO: A lógica foi refatorada para construir o objeto 'data' de forma incremental,
-    // garantindo a segurança de tipos.
     const data: Prisma.UserCreateInput = {
       email,
       password: hashedPassword,
@@ -66,7 +64,7 @@ export class UserService {
 
     try {
       const user = await this.prisma.user.create({
-        data, // Usamos o objeto 'data' que construímos
+        data,
         include: {
           doctorProfile: { include: { address: true } },
           patientProfile: { include: { address: true } }

@@ -1,128 +1,95 @@
-// Endereço: apps/backend/prisma/seed.ts 
-import { PrismaClient, Role } from '@prisma/client'; 
+import { PrismaClient, Role } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as bcrypt from 'bcrypt'; 
+import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
-// Suas funções auxiliares permanecem as mesmas
-function stripHtml(html: string): string {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').trim();
-}
-
-function formatDescription(text: string): string {
-  const trimmedText = text.trim();
-  if (!trimmedText) return '';
-  return trimmedText.charAt(0).toUpperCase() + trimmedText.slice(1).toLowerCase();
-}
-
-
 async function main() {
+  console.log('--- Executando seed.ts v.Final.SQL ---');
   console.log('Iniciando o processo de seeding completo...');
 
-  // ==========================================================
-  // PARTE 1: LÓGICA EXISTENTE PARA POPULAR CID-10
-  // ==========================================================
-  await prisma.cidCode.deleteMany({});
-  console.log('Tabela CidCode limpa com sucesso.');
+  // Truncate tables with RESTART IDENTITY CASCADE
+  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "User", "DoctorProfile", "PatientProfile", "Address", "MedicalCertificate", "CidCode" RESTART IDENTITY CASCADE;`);
+  console.log('Tabelas limpas com sucesso.');
 
+  // CID10 Seeding (keep your existing CID10 seeding logic)
   const cid10FilePath = path.join(__dirname, 'cid10.json');
   const cid10FileContent = fs.readFileSync(cid10FilePath, 'utf-8');
   const jsonData: any = JSON.parse(cid10FileContent);
-  
-  const cid10RawData: { code: string; display: string }[] = Array.isArray(jsonData)
-    ? jsonData
-    : jsonData.concept;
-
-  if (!Array.isArray(cid10RawData)) {
-    throw new Error('Não foi possível encontrar uma lista (array) de CIDs dentro do arquivo cid10.json.');
+  const cid10RawData: { code: string; display: string }[] = Array.isArray(jsonData) ? jsonData : jsonData.concept;
+  if (!Array.isArray(cid10RawData)) { 
+    throw new Error('Não foi possível encontrar uma lista (array) de CIDs.'); 
   }
 
-  // MODIFICAÇÃO: Garantimos que apenas os campos 'code' e 'description' são selecionados,
-  // ignorando qualquer outro campo (como 'id') que possa vir do arquivo JSON.
   const cid10CleanData = cid10RawData.map(cid => ({
     code: cid.code,
-    description: formatDescription(stripHtml(cid.display)), 
+    description: cid.display.replace(/<[^>]*>/g, '').trim(),
   }));
 
-  console.log(`Lidos e limpos ${cid10CleanData.length} códigos. Iniciando inserção de CIDs...`);
+  const chunkSize = 1000;
+  for (let i = 0; i < cid10CleanData.length; i += chunkSize) {
+    const chunk = cid10CleanData.slice(i, i + chunkSize);
+    const values = chunk.map(cid => `('${cid.code}', '${cid.description.replace(/'/g, "''")}')`).join(',');
+    if (values) {
+      await prisma.$executeRawUnsafe(`INSERT INTO "CidCode" (code, description) VALUES ${values}`);
+    }
+  }
+  console.log(`Seeding de CIDs finalizado!`);
 
-  await prisma.cidCode.createMany({
-    data: cid10CleanData,
-    skipDuplicates: true,
-  });
-
-  console.log(`Seeding de CIDs finalizado! ${cid10CleanData.length} códigos foram adicionados.`);
-
-
-  // ==========================================================
-  // PARTE 2: NOVA LÓGICA PARA CRIAR USUÁRIOS DE TESTE
-  // ==========================================================
   console.log('Iniciando criação de usuários de teste...');
-
-  // Limpa usuários de teste antigos para evitar duplicidade
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        in: ['dr.barbara@zello.com', 'livia.santos@email.com'],
-      },
-    },
-  });
-  console.log('Usuários de teste antigos removidos.');
-
-
   const hashedPassword = await bcrypt.hash('12345678', 10);
 
-  // --- CRIAÇÃO DO MÉDICO DE TESTE ---
-  const doctor = await prisma.user.create({
+  // Create Address for Doctor
+  const doctorAddress = await prisma.address.create({
+    data: {
+      street: 'Av. Paulista',
+      number: '1000',
+      neighborhood: 'Bela Vista',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01310-100'
+    }
+  });
+
+  // Create User and DoctorProfile in a single transaction
+  const doctorUserWithProfile = await prisma.user.create({
     data: {
       email: 'dr.barbara@zello.com',
       phone: '11999999999',
       password: hashedPassword,
-      role: Role.DOCTOR,
+      role: 'DOCTOR',
       doctorProfile: {
         create: {
           name: 'Dra. Barbara da Silva',
           crm: '12345SP',
           specialty: 'Cardiologia',
-          address: {
-            create: {
-              street: 'Av. Paulista',
-              number: '1000',
-              neighborhood: 'Bela Vista',
-              city: 'São Paulo',
-              state: 'SP',
-              zipCode: '01310-100',
-            },
-          },
-        },
-      },
-    },
+          addressId: doctorAddress.id
+        }
+      }
+    }
   });
-  console.log(`Médico de teste criado: ${doctor.email}`);
+  console.log(`Médico de teste criado: ${doctorUserWithProfile.email}`);
 
-  // --- CRIAÇÃO DO PACIENTE DE TESTE ---
-  const patient = await prisma.user.create({
+  // Create Patient User and PatientProfile
+  const patientUserWithProfile = await prisma.user.create({
     data: {
       email: 'livia.santos@email.com',
       phone: '21999999999',
       password: hashedPassword,
-      role: Role.PATIENT,
+      role: 'PATIENT',
       patientProfile: {
         create: {
           name: 'Livia Santos',
           cpf: '111.222.333-44',
-          dateOfBirth: new Date('1990-05-15T00:00:00.000Z'),
-        },
-      },
-    },
+          dateOfBirth: new Date('1990-05-15T00:00:00.000Z')
+        }
+      }
+    }
   });
-  console.log(`Paciente de teste criado: ${patient.email}`);
+  console.log(`Paciente de teste criado: ${patientUserWithProfile.email}`);
 
   console.log('Seeding completo!');
 }
-
 
 main()
   .catch((e) => {

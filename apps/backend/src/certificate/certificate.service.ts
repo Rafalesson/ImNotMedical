@@ -21,8 +21,8 @@ export class CertificateService {
 
   private async prepareDataForPdf(
     dto: CreateCertificateDto,
-    doctorId: number, // MODIFICAÇÃO: tipo alterado para number
-    certificateId: number, // MODIFICAÇÃO: tipo alterado para number
+    doctorId: number,
+    certificateId: number,
   ): Promise<CertificateData> {
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
@@ -30,8 +30,8 @@ export class CertificateService {
     });
 
     const patient = await this.prisma.user.findUnique({
-      where: { id: dto.patientId }, // createCertificateDto já espera um number
-      include: { patientProfile: { include: { address: true } } },
+      where: { id: dto.patientId },
+      include: { patientProfile: true }, // MODIFICAÇÃO: Garantido o include do patientProfile
     });
 
     if (!doctor?.doctorProfile || !patient?.patientProfile) {

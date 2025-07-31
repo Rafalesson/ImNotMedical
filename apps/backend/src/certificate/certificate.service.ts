@@ -21,8 +21,8 @@ export class CertificateService {
 
   private async prepareDataForPdf(
     dto: CreateCertificateDto,
-    doctorId: number, 
-    certificateId: number, 
+    doctorId: number, // MODIFICAÇÃO: tipo alterado para number
+    certificateId: number, // MODIFICAÇÃO: tipo alterado para number
   ): Promise<CertificateData> {
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
@@ -30,7 +30,7 @@ export class CertificateService {
     });
 
     const patient = await this.prisma.user.findUnique({
-      where: { id: dto.patientId },
+      where: { id: dto.patientId }, // createCertificateDto já espera um number
       include: { patientProfile: { include: { address: true } } },
     });
 
@@ -76,12 +76,12 @@ export class CertificateService {
       cidCode: dto.cidCode,
       cidDescription: cid?.description,
       issueDateTime: formattedDateTime,
-      certificateId: certificateId.toString(), 
+      certificateId: certificateId.toString(),
     };
   }
 
   async generateCertificatePdf(dto: CreateCertificateDto, doctorId: number): Promise<Buffer> {
-    const data = await this.prepareDataForPdf(dto, doctorId, 0); 
+    const data = await this.prepareDataForPdf(dto, doctorId, 0);
     const html = await this.templatesService.getPopulatedCertificateHtml(data, dto.templateId);
     return this.pdfService.generatePdfFromHtml(html);
   }

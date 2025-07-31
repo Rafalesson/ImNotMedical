@@ -9,7 +9,8 @@ import {
   Get, 
   Param,
   Query,
-  Delete
+  Delete,
+  ParseIntPipe
 } from '@nestjs/common';
 import { CertificateService } from './certificate.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
@@ -22,18 +23,14 @@ import { BatchDeleteDto } from './dto/batch-delete.dto';
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
-  // --- ROTA PÚBLICA PARA VALIDAÇÃO VIA QR CODE ---
-  // Este endpoint é público e não requer autenticação.
   @Get('public/validate/:id')
-  validatePublicCertificate(@Param('id') id: string) {
-    // Reutiliza o método de serviço que já retorna dados seguros.
+  validatePublicCertificate(@Param('id', ParseIntPipe) id: number) { 
     return this.certificateService.validateCertificate(id);
   }
   
-  // Rota antiga, mantida para possíveis usos internos autenticados.
   @Get('validate/:id')
   @UseGuards(AuthGuard)
-  validate(@Param('id') id: string) {
+  validate(@Param('id', ParseIntPipe) id: number) { 
     return this.certificateService.validateCertificate(id);
   }
 
@@ -41,7 +38,8 @@ export class CertificateController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('DOCTOR')
   create(@Body() createCertificateDto: CreateCertificateDto, @Request() req) {
-    return this.certificateService.create(createCertificateDto, req.user.id); 
+    const doctorId = parseInt(req.user.id, 10);
+    return this.certificateService.create(createCertificateDto, doctorId); 
   }
 
   @Post('preview')
@@ -55,7 +53,8 @@ export class CertificateController {
   @UseGuards(AuthGuard)
   @Roles('DOCTOR')
   findRecent(@Request() req) {
-    return this.certificateService.findAllByDoctor(req.user.id);
+    const doctorId = parseInt(req.user.id, 10);
+    return this.certificateService.findAllByDoctor(doctorId);
   }
 
   @Get('my-certificates')
@@ -66,7 +65,8 @@ export class CertificateController {
     @Query('limit') limit: string = '10',
     @Query('patientName') patientName: string,
   ) {
-    return this.certificateService.searchByDoctor(req.user.id, {
+    const doctorId = parseInt(req.user.id, 10);
+    return this.certificateService.searchByDoctor(doctorId, {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       patientName,
@@ -76,7 +76,7 @@ export class CertificateController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('DOCTOR')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.certificateService.remove(id);
   }
 
@@ -84,6 +84,7 @@ export class CertificateController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('DOCTOR')
   removeMany(@Body() batchDeleteDto: BatchDeleteDto) {
-    return this.certificateService.removeMany(batchDeleteDto.ids);
+    const idsAsNumbers = batchDeleteDto.ids.map(id => parseInt(id, 10));
+    return this.certificateService.removeMany(idsAsNumbers);
   }
 }

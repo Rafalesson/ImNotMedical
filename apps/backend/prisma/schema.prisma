@@ -1,4 +1,4 @@
-// Endereço: apps/backend/prisma/schema.prisma (versão com campos de telefone)
+// Endereço: apps/backend/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -12,6 +12,7 @@ datasource db {
 enum Role {
   DOCTOR
   PATIENT
+  ADMIN
 }
 
 enum Sex {
@@ -21,88 +22,78 @@ enum Sex {
 }
 
 model Address {
-  id           String @id @default(cuid())
-  street       String
-  number       String
-  complement   String?
-  neighborhood String
-  city         String
-  state        String
-  zipCode      String
-
+  id              Int            @id @default(autoincrement())
+  street          String
+  number          String
+  complement      String?
+  neighborhood    String
+  city            String
+  state           String
+  zipCode         String
   doctorProfiles  DoctorProfile[]
   patientProfiles PatientProfile[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  phone     String?  @unique 
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  passwordResetToken   String?   @unique
+  id                   Int                   @id @default(autoincrement())
+  email                String                @unique
+  phone                String?               @unique
+  password             String
+  role                 Role
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  passwordResetToken   String?               @unique
   passwordResetExpires DateTime?
-
-  doctorProfile  DoctorProfile?
-  patientProfile PatientProfile?
-
-  issuedCertificates   MedicalCertificate[] @relation("DoctorCertificates")
-  receivedCertificates MedicalCertificate[] @relation("PatientCertificates")
+  doctorProfile        DoctorProfile?
+  patientProfile       PatientProfile?
+  issuedCertificates   MedicalCertificate[]  @relation("DoctorCertificates")
+  receivedCertificates MedicalCertificate[]  @relation("PatientCertificates")
 }
 
 model DoctorProfile {
-  id        String  @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   name      String
-  crm       String  @unique
+  crm       String   @unique
   specialty String?
   address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?  @unique
-  phone     String?  // Telefone de contato profissional/clínica
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
+  addressId Int?     @unique
+  phone     String?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
 }
 
 model PatientProfile {
-  id          String   @id @default(cuid())
+  id          Int      @id @default(autoincrement())
   name        String
   cpf         String   @unique
   dateOfBirth DateTime
   sex         Sex?
-  // ===============================================
-  // CAMPO DE TELEFONE ADICIONADO AO PACIENTE
-  // ===============================================
-  phone       String? // Telefone de contato do paciente
-
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @unique
-  address   Address? @relation(fields: [addressId], references: [id])
-  addressId String?  @unique
+  phone       String?
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int      @unique
+  address     Address? @relation(fields: [addressId], references: [id])
+  addressId   Int?     @unique
 }
 
 model MedicalCertificate {
-  id               String   @id @default(cuid())
-  issueDate        DateTime @default(now())
-  templateId String  @default("default")
-  purpose          String
-  startDate        DateTime?
-  durationInDays   Int?
-  cidCode          String?
-  cidDescription   String?
-  observations     String?
-  pdfUrl           String?
-
-  doctor    User   @relation("DoctorCertificates", fields: [doctorId], references: [id])
-  doctorId  String
-
-  patient   User   @relation("PatientCertificates", fields: [patientId], references: [id])
-  patientId String
+  id             Int       @id @default(autoincrement())
+  issueDate      DateTime  @default(now())
+  templateId     String    @default("default")
+  purpose        String
+  startDate      DateTime?
+  durationInDays Int?
+  cidCode        String?
+  cidDescription String?
+  observations   String?
+  pdfUrl         String?
+  doctor         User      @relation("DoctorCertificates", fields: [doctorId], references: [id])
+  doctorId       Int
+  patient        User      @relation("PatientCertificates", fields: [patientId], references: [id])
+  patientId      Int
 }
 
 model CidCode {
-  id          String @id @default(cuid())
+  id          Int    @id @default(autoincrement())
   code        String @unique
   description String
 

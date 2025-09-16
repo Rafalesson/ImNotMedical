@@ -1,27 +1,22 @@
-// Endereço: apps/backend/src/certificate/dto/create-certificate.dto.ts (Versão Corrigida)
-
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  IsDateString,
-  IsNotEmpty,
-} from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateCertificateDto {
-  @IsString()
+  @Type(() => Number)
+  @IsInt()
   @IsNotEmpty()
-  patientId: string;
+  patientId!: number;
 
   @IsString()
   @IsNotEmpty()
-  purpose: string;
+  purpose!: string;
 
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   durationInDays?: number;
 
@@ -41,3 +36,4 @@ export class CreateCertificateDto {
   @IsString()
   templateId?: string;
 }
+

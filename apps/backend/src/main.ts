@@ -12,7 +12,6 @@ function normalizeOrigin(origin?: string) {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Lista base de origens confiaveis usada em desenvolvimento/local.
   const whitelist = new Set(
     [
       'http://localhost:3001',
@@ -22,10 +21,25 @@ async function bootstrap() {
     ].map(normalizeOrigin),
   );
 
-  // Permite incluir dinamicamente o dominio publicado com base na variavel FRONTEND_URL.
   const frontendUrl = normalizeOrigin(process.env.FRONTEND_URL?.trim());
   if (frontendUrl) {
     whitelist.add(frontendUrl);
+
+    try {
+      const parsed = new URL(frontendUrl);
+      const host = parsed.host.replace(/^www\./, '');
+      const protocol = parsed.protocol;
+      const withoutWww = normalizeOrigin(`${protocol}//${host}`);
+      const withWww = normalizeOrigin(`${protocol}//www.${host}`);
+      if (withoutWww) {
+        whitelist.add(withoutWww);
+      }
+      if (withWww) {
+        whitelist.add(withWww);
+      }
+    } catch (error) {
+      console.warn('[CORS] FRONTEND_URL is not a valid URL:', frontendUrl, error);
+    }
   }
 
   const isProduction = process.env.NODE_ENV === 'production';
@@ -37,9 +51,7 @@ async function bootstrap() {
       }
 
       const normalizedOrigin = normalizeOrigin(origin);
-      const isAllowed = normalizedOrigin
-        ? whitelist.has(normalizedOrigin)
-        : false;
+      const isAllowed = normalizedOrigin ? whitelist.has(normalizedOrigin) : false;
 
       if (isAllowed) {
         return callback(null, true);
@@ -50,7 +62,6 @@ async function bootstrap() {
         ? `${baseMessage} (current FRONTEND_URL=${frontendUrl})`
         : baseMessage;
 
-      // Em ambientes nao produtivos registramos e liberamos para facilitar o debug.
       if (!isProduction) {
         console.warn(
           `${message}. Allowing because NODE_ENV=${process.env.NODE_ENV ?? 'development'}`,
@@ -65,7 +76,13 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: false,
+    }),
+  );
 
   const port = Number(process.env.PORT) || 3333;
   await app.listen(port, '0.0.0.0');

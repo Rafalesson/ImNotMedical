@@ -10,6 +10,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Prisma, Sex } from '@prisma/client';
 
+type UserWithProfiles = Prisma.UserGetPayload<{
+  include: {
+    doctorProfile: { include: { address: true } };
+    patientProfile: true;
+  };
+}>;
+
 @Injectable()
 export class CertificateService {
   constructor(

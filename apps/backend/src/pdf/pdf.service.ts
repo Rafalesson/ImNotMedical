@@ -1,8 +1,7 @@
-// Endereço: apps/backend/src/pdf/pdf.service.ts
-
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
@@ -11,40 +10,62 @@ import { Browser, connect } from 'puppeteer';
 @Injectable()
 export class PdfService implements OnModuleInit, OnModuleDestroy {
   private browser: Browser | null = null;
+  private readonly logger = new Logger(PdfService.name);
 
   async onModuleInit() {
-    try {
-      const apiKey = process.env.BROWSERLESS_API_KEY;
-      if (!apiKey) {
-        throw new InternalServerErrorException(
-          'BROWSERLESS_API_KEY não foi encontrada nas variáveis de ambiente.',
-        );
-      }
-
-      console.log('Conectando ao Browserless.io...');
-      // MODIFICAÇÃO: Usando a URL de conexão correta do produto BaaS V2
-      this.browser = await connect({
-        browserWSEndpoint: `wss://production-sfo.browserless.io?token=${apiKey}`,
-      });
-      console.log('Conexão com Browserless.io estabelecida com sucesso.');
-    } catch (error) {
-      console.error('FALHA AO CONECTAR COM BROWSERLESS.IO:', error);
-    }
+    await this.ensureBrowser();
   }
 
   async onModuleDestroy() {
     if (this.browser) {
       await this.browser.close();
+      this.browser = null;
+    }
+  }
+
+  private async connectBrowser(): Promise<Browser> {
+    const apiKey = process.env.BROWSERLESS_API_KEY;
+    if (!apiKey) {
+      throw new InternalServerErrorException(
+        'BROWSERLESS_API_KEY n�o foi encontrada nas vari�veis de ambiente.',
+      );
+    }
+
+    this.logger.log('Conectando ao Browserless.io...');
+    const browser = await connect({
+      browserWSEndpoint: `wss://production-sfo.browserless.io?token=${apiKey}`,
+    });
+    this.logger.log('Conex�o com Browserless.io estabelecida com sucesso.');
+    return browser;
+  }
+
+  private async ensureBrowser(): Promise<Browser> {
+    if (this.browser) {
+      return this.browser;
+    }
+
+    try {
+      this.browser = await this.connectBrowser();
+      return this.browser;
+    } catch (error) {
+      this.logger.error('FALHA AO CONECTAR COM BROWSERLESS.IO:', error);
+      throw error;
     }
   }
 
   async generatePdfFromHtml(html: string): Promise<Buffer> {
-    if (!this.browser) {
-      throw new InternalServerErrorException(
-        'Instância do navegador remoto (Puppeteer) não está pronta.',
-      );
+    let browser = await this.ensureBrowser();
+
+    let page;
+    try {
+      page = await browser.newPage();
+    } catch (error) {
+      this.logger.warn('Falha ao abrir p�gina, tentando reconectar ao Browserless...', error);
+      this.browser = null;
+      browser = await this.ensureBrowser();
+      page = await browser.newPage();
     }
-    const page = await this.browser.newPage();
+
     try {
       await page.setContent(html, { waitUntil: 'networkidle0' });
       const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });

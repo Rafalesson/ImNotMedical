@@ -31,7 +31,7 @@ export class CertificateService {
     doctorId: number,
     certificateId: number,
   ): Promise<CertificateData> {
-    const patientId = dto.patientId;
+    const patientId = dto.patientId ?? 0;
 
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },

@@ -1,6 +1,11 @@
 // Endereço: apps/backend/src/pdf/pdf.service.ts
 
-import { Injectable, InternalServerErrorException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Browser, connect } from 'puppeteer';
 
 @Injectable()
@@ -11,7 +16,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
     try {
       const apiKey = process.env.BROWSERLESS_API_KEY;
       if (!apiKey) {
-        throw new InternalServerErrorException('BROWSERLESS_API_KEY não foi encontrada nas variáveis de ambiente.');
+        throw new InternalServerErrorException(
+          'BROWSERLESS_API_KEY não foi encontrada nas variáveis de ambiente.',
+        );
       }
 
       console.log('Conectando ao Browserless.io...');
@@ -20,7 +27,6 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
         browserWSEndpoint: `wss://production-sfo.browserless.io?token=${apiKey}`,
       });
       console.log('Conexão com Browserless.io estabelecida com sucesso.');
-      
     } catch (error) {
       console.error('FALHA AO CONECTAR COM BROWSERLESS.IO:', error);
     }
@@ -34,7 +40,9 @@ export class PdfService implements OnModuleInit, OnModuleDestroy {
 
   async generatePdfFromHtml(html: string): Promise<Buffer> {
     if (!this.browser) {
-      throw new InternalServerErrorException('Instância do navegador remoto (Puppeteer) não está pronta.');
+      throw new InternalServerErrorException(
+        'Instância do navegador remoto (Puppeteer) não está pronta.',
+      );
     }
     const page = await this.browser.newPage();
     try {

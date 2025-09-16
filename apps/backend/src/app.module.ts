@@ -10,8 +10,8 @@ import { PatientModule } from './patient/patient.module';
 import { PdfModule } from './pdf/pdf.module';
 import { TemplatesModule } from './templates/templates.module';
 import { CidsModule } from './cids/cids.module';
-import { ServeStaticModule } from '@nestjs/serve-static'; 
-import { join } from 'path'; 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { MailModule } from './mail/mail.module';
 
 @Module({

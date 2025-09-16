@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { CheckCircle, XCircle, Loader2, Download, Home } from 'lucide-react';
+import { resolvePdfUrl } from '@/utils/resolvePdfUrl';
 import { useAttestation } from '@/contexts/AttestationContext'; 
 
 // MODIFICAÇÃO: Adicionada uma interface para a resposta da criação do atestado
@@ -85,9 +86,7 @@ export default function PreviewPage() {
   };
 
   if (finalCertificate) {
-    // A variável de ambiente correta é NEXT_PUBLIC_API_URL
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
-    const downloadUrl = `${backendUrl}${finalCertificate.pdfUrl}`;
+    const downloadUrl = resolvePdfUrl(finalCertificate.pdfUrl);
     return (
       <div className="flex flex-col items-center justify-center text-center p-8">
         <CheckCircle className="h-16 w-16 text-green-500" />

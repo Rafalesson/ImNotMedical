@@ -4,10 +4,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport'; 
-import { JwtStrategy } from './jwt.strategy'; 
-import { MailModule } from 'src/mail/mail.module'; 
-import { PrismaModule } from 'src/prisma/prisma.module'; 
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './jwt.strategy';
+import { MailModule } from 'src/mail/mail.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -18,10 +18,10 @@ import { PrismaModule } from 'src/prisma/prisma.module';
       secret: process.env.JWT_SECRET, // Garanta que esta variável de ambiente existe no seu .env
       signOptions: { expiresIn: '1d' },
     }),
-    MailModule, 
-    PrismaModule, 
+    MailModule,
+    PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], 
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

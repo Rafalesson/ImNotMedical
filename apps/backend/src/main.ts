@@ -1,34 +1,65 @@
-// Endereço: apps/backend/src/main.ts
-
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ValidationPipe } from '@nestjs/common';
+
+function normalizeOrigin(origin?: string) {
+  if (!origin) {
+    return undefined;
+  }
+  return origin.endsWith('/') ? origin.slice(0, -1) : origin;
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  const whitelist = [
-    'http://localhost:3001', 
-    'http://192.168.0.2:3001',
-    'http://172.20.80.1:3001',
-    'https://zello-zellos-projects-cea7c733.vercel.app',
-    'https://zello-zellos-projects-cea7c733.vercel.app/' // MODIFICAÇÃO: Adicionada a URL com uma barra no final por segurança
-  ];
+
+  // Lista base de origens confiaveis usada em desenvolvimento/local.
+  const whitelist = new Set(
+    [
+      'http://localhost:3001',
+      'http://192.168.0.2:3001',
+      'http://172.20.80.1:3001',
+      'https://zello-zellos-projects-cea7c733.vercel.app',
+    ].map(normalizeOrigin),
+  );
+
+  // Permite incluir dinamicamente o dominio publicado com base na variavel FRONTEND_URL.
+  const frontendUrl = normalizeOrigin(process.env.FRONTEND_URL?.trim());
+  if (frontendUrl) {
+    whitelist.add(frontendUrl);
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production';
 
   app.enableCors({
-    origin: function (origin, callback) {
-      // MODIFICAÇÃO: Adicionado log de diagnóstico para comparar a origem exata
-      console.log(`[CORS DIAGNÓSTICO] Origem da Requisição: "${origin}"`);
-      console.log(`[CORS DIAGNÓSTICO] A origem está na whitelist? ${whitelist.indexOf(origin) !== -1}`);
-
-      if (!origin || whitelist.indexOf(origin) !== -1) {
-        console.log("Origem permitida pelo CORS:", origin)
-        callback(null, true);
-      } else {
-        console.log("Origem bloqueada pelo CORS:", origin)
-        callback(new Error('Não permitido pelo CORS'));
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
       }
+
+      const normalizedOrigin = normalizeOrigin(origin);
+      const isAllowed = normalizedOrigin
+        ? whitelist.has(normalizedOrigin)
+        : false;
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+
+      const baseMessage = `[CORS] Origin ${origin} is not in whitelist`;
+      const message = frontendUrl
+        ? `${baseMessage} (current FRONTEND_URL=${frontendUrl})`
+        : baseMessage;
+
+      // Em ambientes nao produtivos registramos e liberamos para facilitar o debug.
+      if (!isProduction) {
+        console.warn(
+          `${message}. Allowing because NODE_ENV=${process.env.NODE_ENV ?? 'development'}`,
+        );
+        return callback(null, true);
+      }
+
+      console.warn(`${message}. Blocking request.`);
+      return callback(new Error('Not allowed by CORS'));
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
@@ -36,11 +67,8 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
-  const httpAdapterHost = app.get(HttpAdapterHost);
-
-  // MODIFICAÇÃO: A linha abaixo foi comentada para desativar o filtro de exceções temporariamente.
-  // app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-
-  await app.listen(3333);
+  const port = Number(process.env.PORT) || 3333;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Server is listening on port ${port}`);
 }
-bootstrap();
+void bootstrap();

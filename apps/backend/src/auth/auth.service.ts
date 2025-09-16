@@ -1,6 +1,10 @@
 // Endereço: apps/backend/src/auth/auth.service.ts (versão com resetPassword)
 
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
@@ -78,7 +82,9 @@ export class AuthService {
 
     // 3. Se não encontrou usuário ou o token expirou, retorna um erro genérico.
     if (!user) {
-      throw new BadRequestException('Token de recuperação inválido ou expirado.');
+      throw new BadRequestException(
+        'Token de recuperação inválido ou expirado.',
+      );
     }
 
     // 4. Criptografa a nova senha.

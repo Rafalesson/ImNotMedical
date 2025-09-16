@@ -1,9 +1,8 @@
-// Endereço: apps/backend/src/certificate/certificate.service.ts
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { TemplatesService } from 'src/templates/templates.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { CertificateData } from './certificate.types';
 import { calculateAge, numberToWords } from 'src/utils';
@@ -17,6 +16,7 @@ export class CertificateService {
     private readonly prisma: PrismaService,
     private readonly pdfService: PdfService,
     private readonly templatesService: TemplatesService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   private async prepareDataForPdf(
@@ -24,24 +24,28 @@ export class CertificateService {
     doctorId: number,
     certificateId: number,
   ): Promise<CertificateData> {
+    const patientId = Number.parseInt(dto.patientId, 10);
+
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
       include: { doctorProfile: { include: { address: true } } },
     });
 
     const patient = await this.prisma.user.findUnique({
-      where: { id: dto.patientId },
-      include: { patientProfile: true }, // MODIFICAÇÃO: Garantido o include do patientProfile
+      where: { id: patientId },
+      include: { patientProfile: true },
     });
 
     if (!doctor?.doctorProfile || !patient?.patientProfile) {
-      throw new NotFoundException('Perfil do médico ou do paciente não encontrado.');
+      throw new NotFoundException(
+        'Perfil do medico ou do paciente nao encontrado.',
+      );
     }
 
     const doctorAddressObj = doctor.doctorProfile.address;
     const formattedDoctorAddress = doctorAddressObj
       ? `${doctorAddressObj.street}, ${doctorAddressObj.number} - ${doctorAddressObj.city}, ${doctorAddressObj.state}`
-      : 'Endereço não informado';
+      : 'Endereco nao informado';
 
     const cid = dto.cidCode
       ? await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } })
@@ -49,9 +53,14 @@ export class CertificateService {
     const issueDate = new Date();
     const formattedDateTime =
       issueDate.toLocaleString('pt-BR', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      }) + ' às ' + issueDate.toLocaleTimeString('pt-BR', {
-        hour: '2-digit', minute: '2-digit',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }) +
+      ' as ' +
+      issueDate.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
       });
 
     return {
@@ -62,11 +71,15 @@ export class CertificateService {
       doctorPhone: doctor.doctorProfile.phone,
       patientName: patient.patientProfile.name,
       patientCpf: patient.patientProfile.cpf,
-      patientAge: calculateAge(patient.patientProfile.dateOfBirth).toString(),
+      patientAge: calculateAge(
+        new Date(patient.patientProfile.dateOfBirth),
+      ).toString(),
       patientSex:
-        patient.patientProfile.sex === Sex.MALE ? 'Masculino'
-        : patient.patientProfile.sex === Sex.FEMALE ? 'Feminino'
-        : 'Não informado',
+        patient.patientProfile.sex === Sex.MALE
+          ? 'Masculino'
+          : patient.patientProfile.sex === Sex.FEMALE
+            ? 'Feminino'
+            : 'Nao informado',
       durationInDays: dto.durationInDays || 0,
       durationInWords: numberToWords(dto.durationInDays || 0),
       startDate: dto.startDate
@@ -80,9 +93,15 @@ export class CertificateService {
     };
   }
 
-  async generateCertificatePdf(dto: CreateCertificateDto, doctorId: number): Promise<Buffer> {
+  async generateCertificatePdf(
+    dto: CreateCertificateDto,
+    doctorId: number,
+  ): Promise<Buffer> {
     const data = await this.prepareDataForPdf(dto, doctorId, 0);
-    const html = await this.templatesService.getPopulatedCertificateHtml(data, dto.templateId);
+    const html = await this.templatesService.getPopulatedCertificateHtml(
+      data,
+      dto.templateId,
+    );
     return this.pdfService.generatePdfFromHtml(html);
   }
 
@@ -96,7 +115,9 @@ export class CertificateService {
         observations: createCertificateDto.observations,
         templateId: createCertificateDto.templateId || 'default',
         doctor: { connect: { id: doctorId } },
-        patient: { connect: { id: createCertificateDto.patientId } },
+        patient: {
+          connect: { id: Number.parseInt(createCertificateDto.patientId, 10) },
+        },
       },
     });
 
@@ -111,6 +132,21 @@ export class CertificateService {
     );
     const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
 
+    // Armazena o PDF gerado na Cloudinary quando as credenciais estao configuradas.
+    if (this.cloudinaryService.isEnabled()) {
+      const uploadResult = await this.cloudinaryService.uploadCertificatePdf(
+        pdfBuffer,
+        certificateRecord.id.toString(),
+      );
+
+      // Persiste a URL segura da Cloudinary na base.
+      return this.prisma.medicalCertificate.update({
+        where: { id: certificateRecord.id },
+        data: { pdfUrl: uploadResult.secure_url },
+      });
+    }
+
+    // Fallback para a pasta local quando a Cloudinary estiver desativada.
     const pdfDir = path.join(process.cwd(), 'storage', 'certificates');
     if (!fs.existsSync(pdfDir)) {
       fs.mkdirSync(pdfDir, { recursive: true });
@@ -120,7 +156,7 @@ export class CertificateService {
     const pdfPath = path.join(pdfDir, pdfFileName);
     fs.writeFileSync(pdfPath, pdfBuffer);
 
-    return await this.prisma.medicalCertificate.update({
+    return this.prisma.medicalCertificate.update({
       where: { id: certificateRecord.id },
       data: { pdfUrl: `/storage/certificates/${pdfFileName}` },
     });
@@ -146,7 +182,7 @@ export class CertificateService {
       },
     });
     if (!certificate) {
-      throw new NotFoundException('Atestado não encontrado.');
+      throw new NotFoundException('Atestado nao encontrado.');
     }
     return {
       issuedAt: certificate.issueDate,
@@ -208,17 +244,34 @@ export class CertificateService {
     });
 
     if (!certificate) {
-      throw new NotFoundException(`Atestado com ID ${id} não encontrado.`);
+      throw new NotFoundException(`Atestado com ID ${id} nao encontrado.`);
     }
 
     if (certificate.pdfUrl) {
-      const filePath = path.join(process.cwd(), certificate.pdfUrl);
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+      if (this.cloudinaryService.isEnabled()) {
+        // Mantem os fluxos de exclusao remota/local sincronizados de acordo com o storage ativo.
+        try {
+          await this.cloudinaryService.deleteCertificatePdfByUrl(
+            certificate.pdfUrl,
+          );
+        } catch (error) {
+          console.error(
+            `Falha ao deletar o arquivo no Cloudinary: ${certificate.pdfUrl}`,
+            error,
+          );
         }
-      } catch (error) {
-        console.error(`Falha ao deletar o arquivo físico: ${filePath}`, error);
+      } else {
+        const filePath = path.join(process.cwd(), certificate.pdfUrl);
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } catch (error) {
+          console.error(
+            `Falha ao deletar o arquivo fisico: ${filePath}`,
+            error,
+          );
+        }
       }
     }
 
@@ -235,14 +288,30 @@ export class CertificateService {
     });
 
     if (certificatesToDelete.length === 0) {
-      throw new NotFoundException('Nenhum atestado encontrado para os IDs fornecidos.');
+      throw new NotFoundException(
+        'Nenhum atestado encontrado para os IDs fornecidos.',
+      );
     }
 
     for (const certificate of certificatesToDelete) {
       if (certificate.pdfUrl) {
-        const filePath = path.join(process.cwd(), certificate.pdfUrl);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        if (this.cloudinaryService.isEnabled()) {
+          // Mantem os fluxos de exclusao remota/local sincronizados de acordo com o storage ativo.
+          try {
+            await this.cloudinaryService.deleteCertificatePdfByUrl(
+              certificate.pdfUrl,
+            );
+          } catch (error) {
+            console.error(
+              `Falha ao deletar o arquivo no Cloudinary: ${certificate.pdfUrl}`,
+              error,
+            );
+          }
+        } else {
+          const filePath = path.join(process.cwd(), certificate.pdfUrl);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
         }
       }
     }

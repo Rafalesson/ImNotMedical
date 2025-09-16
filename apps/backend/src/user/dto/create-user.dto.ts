@@ -1,8 +1,14 @@
 // Endereço: apps/backend/src/user/dto/create-user.dto.ts (versão com data de nascimento obrigatória para pacientes)
 
 import {
-  IsEmail, IsString, MinLength, IsNotEmpty,
-  IsEnum, IsOptional, IsDateString, ValidateIf,
+  IsEmail,
+  IsString,
+  MinLength,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsDateString,
+  ValidateIf,
 } from 'class-validator';
 import { Role, Sex } from '@prisma/client';
 
@@ -14,22 +20,22 @@ export class CreateUserDto {
   @IsOptional() @IsString() phone?: string;
 
   // --- Campos de Doutor ---
-  @ValidateIf(o => o.role === Role.DOCTOR)
-  @IsNotEmpty({ message: 'CRM é obrigatório para médicos.'})
+  @ValidateIf((o) => o.role === Role.DOCTOR)
+  @IsNotEmpty({ message: 'CRM é obrigatório para médicos.' })
   crm?: string;
   @IsOptional() @IsString() specialty?: string;
-  
+
   // --- Campos de Paciente ---
-  @ValidateIf(o => o.role === Role.PATIENT)
-  @IsNotEmpty({ message: 'CPF é obrigatório para pacientes.'})
+  @ValidateIf((o) => o.role === Role.PATIENT)
+  @IsNotEmpty({ message: 'CPF é obrigatório para pacientes.' })
   cpf?: string;
 
   // MUDANÇA AQUI: Tornamos a data de nascimento obrigatória para pacientes
-  @ValidateIf(o => o.role === Role.PATIENT)
-  @IsNotEmpty({ message: 'Data de nascimento é obrigatória para pacientes.'})
+  @ValidateIf((o) => o.role === Role.PATIENT)
+  @IsNotEmpty({ message: 'Data de nascimento é obrigatória para pacientes.' })
   @IsDateString()
   dateOfBirth?: string;
-  
+
   @IsOptional()
   @IsEnum(Sex)
   sex?: Sex;

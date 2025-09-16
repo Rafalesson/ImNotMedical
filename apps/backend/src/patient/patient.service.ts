@@ -1,4 +1,4 @@
-// Endereço: apps/backend/src/patient/patient.service.ts 
+// Endereço: apps/backend/src/patient/patient.service.ts
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -16,13 +16,13 @@ export class PatientService {
           },
         },
         take: 5,
-        select: { 
-          id: true, 
-          name: true, 
-          cpf: true, 
+        select: {
+          id: true,
+          name: true,
+          cpf: true,
           userId: true,
           dateOfBirth: true,
-          sex: true 
+          sex: true,
         },
       });
     }
@@ -36,15 +36,15 @@ export class PatientService {
         },
       },
       orderBy: {
-        name: 'asc', 
+        name: 'asc',
       },
-      select: { 
-        id: true, 
-        name: true, 
-        cpf: true, 
+      select: {
+        id: true,
+        name: true,
+        cpf: true,
         userId: true,
         dateOfBirth: true,
-        sex: true  
+        sex: true,
       },
       take: 10,
     });

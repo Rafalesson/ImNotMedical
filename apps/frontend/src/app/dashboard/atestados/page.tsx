@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { api } from '@/services/api';
 import { Search, Download, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { Modal } from '@/components/common/Modal';
+import { resolvePdfUrl } from '@/utils/resolvePdfUrl';
 import { useDebounce } from '@/hooks/useDebounce';
 
 type Certificate = {
@@ -118,7 +119,7 @@ export default function CertificateHistoryPage() {
   };
   
   const handleOpenPreview = (pdfUrl: string) => {
-    setPreviewPdfUrl(pdfUrl);
+    setPreviewPdfUrl(resolvePdfUrl(pdfUrl));
     setIsPreviewModalOpen(true);
   };
 
@@ -208,7 +209,7 @@ export default function CertificateHistoryPage() {
             Visualizar
           </button>
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL}${cert.pdfUrl}`}
+            href={resolvePdfUrl(cert.pdfUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-900 inline-flex items-center"
@@ -324,7 +325,7 @@ export default function CertificateHistoryPage() {
       >
         {previewPdfUrl ? (
           <iframe 
-            src={`${process.env.NEXT_PUBLIC_API_URL}${previewPdfUrl}`}
+            src={previewPdfUrl ?? ''}
             className="w-full h-[75vh] border-0"
             title="Preview do Atestado"
           />

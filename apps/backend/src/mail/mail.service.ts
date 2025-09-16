@@ -1,33 +1,39 @@
-// Endereço: apps/backend/src/mail/mail.service.ts (versão corrigida)
-
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private transporter;
+  private transporter: nodemailer.Transporter | null = null;
 
   constructor() {
-    this.initializeTransporter();
+    void this.initializeTransporter();
   }
 
-  private async initializeTransporter() {
-    const testAccount = await nodemailer.createTestAccount();
+  private async initializeTransporter(): Promise<void> {
+    try {
+      const testAccount = await nodemailer.createTestAccount();
 
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+    } catch (error) {
+      console.error('Falha ao inicializar o transporter de e-mail:', error);
+      this.transporter = null;
+    }
   }
 
-  async sendPasswordResetEmail(userEmail: string, token: string) {
+  async sendPasswordResetEmail(
+    userEmail: string,
+    token: string,
+  ): Promise<void> {
     if (!this.transporter) {
-      console.error('Transporter não inicializado!');
+      console.error('Transporter nao inicializado!');
       return;
     }
 
@@ -36,27 +42,30 @@ export class MailService {
     const info = await this.transporter.sendMail({
       from: '"Equipe Zello" <nao-responda@zello.com.br>',
       to: userEmail,
-      subject: 'Recuperação de Senha - Zello',
+      subject: 'Recuperacao de Senha - Zello',
       html: `
         <div style="font-family: sans-serif; padding: 20px;">
-          <h2>Recuperação de Senha</h2>
-          <p>Olá,</p>
-          <p>Você solicitou a redefinição de sua senha. Clique no link abaixo para criar uma nova senha:</p>
+          <h2>Recuperacao de Senha</h2>
+          <p>Ola,</p>
+          <p>Voce solicitou a redefinicao de sua senha. Clique no link abaixo para criar uma nova senha:</p>
           <p style="margin: 20px 0;">
-            <a 
-              href="${resetUrl}" 
+            <a
+              href="${resetUrl}"
               style="background-color: #2563eb; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;"
             >
               Redefinir Minha Senha
             </a>
           </p>
-          <p>Se você não solicitou isso, por favor, ignore este e-mail.</p>
+          <p>Se voce nao solicitou isso, por favor, ignore este e-mail.</p>
           <br>
           <p>Atenciosamente,<br>Equipe Zello.</p>
         </div>
       `,
     });
 
-    console.log('E-mail de teste enviado! Preview URL: %s', nodemailer.getTestMessageUrl(info));
+    console.log(
+      'E-mail de teste enviado! Preview URL: %s',
+      nodemailer.getTestMessageUrl(info),
+    );
   }
 }

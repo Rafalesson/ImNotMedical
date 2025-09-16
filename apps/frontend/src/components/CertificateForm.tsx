@@ -7,6 +7,7 @@ import { api } from '@/services/api';
 import { AutocompleteSearch } from './AutocompleteSearch';
 import { useAttestation, Patient } from '@/contexts/AttestationContext';
 import { Modal } from './common/Modal';
+import { resolvePdfUrl } from '@/utils/resolvePdfUrl';
 import { DefaultTemplate } from './templates/default';
 import { ModernTemplate } from './templates/modern'; 
 import { ClassicTemplate } from './templates/classic';
@@ -230,7 +231,7 @@ export function CertificateForm() {
             <p className="mt-2 text-gray-600">O documento foi salvo e está pronto para download.</p>
             <div className="mt-8 flex flex-col sm:flex-row sm:justify-center sm:space-x-4 space-y-4 sm:space-y-0">
                <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}${submissionResult.pdfUrl}`}
+                href={resolvePdfUrl(submissionResult.pdfUrl)}
                 download
                 target="_blank"
                 rel="noopener noreferrer"

@@ -1,6 +1,15 @@
 // Endereço: apps/backend/src/auth/auth.controller.ts (versão final com endpoint de reset)
 
-import { Body, Controller, Post, HttpCode, HttpStatus, UseGuards, Get, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Get,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { SignInDto } from './dto/signin.dto';
@@ -30,7 +39,8 @@ export class AuthController {
   ): Promise<{ message: string }> {
     await this.authService.forgotPassword(forgotPasswordDto.email);
     return {
-      message: 'Se um usuário com este e-mail existir, um link de recuperação foi enviado.',
+      message:
+        'Se um usuário com este e-mail existir, um link de recuperação foi enviado.',
     };
   }
 

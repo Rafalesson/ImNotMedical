@@ -24,7 +24,7 @@ export class CreateCertificateDto {
   @IsOptional()
   @IsInt()
   durationInDays?: number;
-  
+
   @IsOptional()
   @IsString()
   cidCode?: string;

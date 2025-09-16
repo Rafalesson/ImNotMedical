@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PdfService } from 'src/pdf/pdf.service';
 import { TemplatesService } from 'src/templates/templates.service';
@@ -19,6 +19,7 @@ type UserWithProfiles = Prisma.UserGetPayload<{
 
 @Injectable()
 export class CertificateService {
+  private readonly logger = new Logger(CertificateService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly pdfService: PdfService,
@@ -141,16 +142,19 @@ export class CertificateService {
 
     // Armazena o PDF gerado na Cloudinary quando as credenciais estao configuradas.
     if (this.cloudinaryService.isEnabled()) {
-      const uploadResult = await this.cloudinaryService.uploadCertificatePdf(
-        pdfBuffer,
-        certificateRecord.id.toString(),
-      );
+      try {
+        const uploadResult = await this.cloudinaryService.uploadCertificatePdf(
+          pdfBuffer,
+          certificateRecord.id.toString(),
+        );
 
-      // Persiste a URL segura da Cloudinary na base.
-      return this.prisma.medicalCertificate.update({
-        where: { id: certificateRecord.id },
-        data: { pdfUrl: uploadResult.secure_url },
-      });
+        return this.prisma.medicalCertificate.update({
+          where: { id: certificateRecord.id },
+          data: { pdfUrl: uploadResult.secure_url },
+        });
+      } catch (error) {
+        this.logger.error('Falha ao enviar PDF para a Cloudinary:', error);
+      }
     }
 
     // Fallback para a pasta local quando a Cloudinary estiver desativada.
@@ -330,4 +334,5 @@ export class CertificateService {
     return { message: `${count} atestado(s) deletado(s) com sucesso.`, count };
   }
 }
+
 

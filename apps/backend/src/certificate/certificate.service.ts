@@ -31,7 +31,7 @@ export class CertificateService {
     doctorId: number,
     certificateId: number,
   ): Promise<CertificateData> {
-    const patientId = Number.parseInt(dto.patientId, 10);
+    const patientId = dto.patientId;
 
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
@@ -123,7 +123,7 @@ export class CertificateService {
         templateId: createCertificateDto.templateId || 'default',
         doctor: { connect: { id: doctorId } },
         patient: {
-          connect: { id: Number.parseInt(createCertificateDto.patientId, 10) },
+          connect: { id: createCertificateDto.patientId },
         },
       },
     });
@@ -330,3 +330,4 @@ export class CertificateService {
     return { message: `${count} atestado(s) deletado(s) com sucesso.`, count };
   }
 }
+

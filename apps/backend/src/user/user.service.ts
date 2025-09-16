@@ -13,21 +13,45 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const {
-      email, password, role, name, phone,
-      crm, specialty,
-      cpf, dateOfBirth, sex,
-      street, number, complement, neighborhood, city, state, zipCode
+      email,
+      password,
+      role,
+      name,
+      phone,
+      crm,
+      specialty,
+      cpf,
+      dateOfBirth,
+      sex,
+      street,
+      number,
+      complement,
+      neighborhood,
+      city,
+      state,
+      zipCode,
     } = createUserDto;
 
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
     if (existingUser) {
       throw new BadRequestException('Um usuário com este e-mail já existe.');
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const addressData = (street && number && neighborhood && city && state && zipCode) ? {
-      street, number, complement, neighborhood, city, state, zipCode
-    } : undefined;
+    const addressData =
+      street && number && neighborhood && city && state && zipCode
+        ? {
+            street,
+            number,
+            complement,
+            neighborhood,
+            city,
+            state,
+            zipCode,
+          }
+        : undefined;
 
     // MODIFICAÇÃO: A lógica foi refatorada para construir o objeto 'data' de forma incremental,
     // garantindo a segurança de tipos.
@@ -45,12 +69,14 @@ export class UserService {
           crm: crm || '',
           specialty,
           phone,
-          ...(addressData && { address: { create: addressData } })
-        }
+          ...(addressData && { address: { create: addressData } }),
+        },
       };
     } else if (role === Role.PATIENT) {
       if (!cpf || !dateOfBirth) {
-        throw new BadRequestException('CPF e Data de Nascimento são obrigatórios para pacientes.');
+        throw new BadRequestException(
+          'CPF e Data de Nascimento são obrigatórios para pacientes.',
+        );
       }
       data.patientProfile = {
         create: {
@@ -59,8 +85,8 @@ export class UserService {
           dateOfBirth: new Date(dateOfBirth),
           sex,
           phone,
-          ...(addressData && { address: { create: addressData } })
-        }
+          ...(addressData && { address: { create: addressData } }),
+        },
       };
     }
 
@@ -69,22 +95,25 @@ export class UserService {
         data, // Usamos o objeto 'data' que construímos
         include: {
           doctorProfile: { include: { address: true } },
-          patientProfile: { include: { address: true } }
-        }
+          patientProfile: { include: { address: true } },
+        },
       });
-      
+
       const { password: _, ...result } = user;
       return result;
-
     } catch (error) {
-      console.error("Erro inesperado ao criar usuário:", error);
+      console.error('Erro inesperado ao criar usuário:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           const fields = (error.meta?.target as string[]) || [];
-          throw new BadRequestException(`Os seguintes dados já estão em uso: ${fields.join(', ')}.`);
+          throw new BadRequestException(
+            `Os seguintes dados já estão em uso: ${fields.join(', ')}.`,
+          );
         }
       }
-      throw new BadRequestException('Não foi possível criar o usuário devido a um erro interno. Verifique os dados fornecidos.');
+      throw new BadRequestException(
+        'Não foi possível criar o usuário devido a um erro interno. Verifique os dados fornecidos.',
+      );
     }
   }
 

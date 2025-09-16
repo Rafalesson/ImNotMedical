@@ -1,3 +1,18 @@
+## Environment Setup
+
+Before running or deploying the backend, copy `.env.example` to `.env` and provide the values:
+- `DATABASE_URL`: PostgreSQL connection string (Render, Supabase etc.).
+- `JWT_SECRET`: key used to sign JWT tokens; must match the frontend.
+- `FRONTEND_URL`: public frontend URL for CORS and QR code generation.
+- `PORT`: port that NestJS should listen on (Render provides via variable).
+- `BROWSERLESS_API_KEY`: Browserless.io token for PDF generation.
+- `CLOUDINARY_*`: Cloudinary credentials used to store PDFs remotely.
+
+For the frontend, copy `.env.example` to `.env.local` and set:
+- `NEXT_PUBLIC_API_URL`: published backend URL.
+- `JWT_SECRET`: same key configured in the backend (middleware validates tokens).
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

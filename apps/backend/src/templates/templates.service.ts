@@ -68,7 +68,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+                A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {{validationUrl}} <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>
@@ -127,7 +127,7 @@ const allTemplates = {
             <div class="footerDetails">
               <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
               <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
-              <p>A validade deste documento pode ser verificada em www.validadordedocs.com.br</p>
+              <p>A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {{validationUrl}}</p>
               <p>Código de Validação: <strong>{{certificateId}}</strong></p>
             </div>
             <div class="signatureImages">
@@ -180,7 +180,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+                A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {{validationUrl}} <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>
@@ -248,6 +248,7 @@ export class TemplatesService {
       .replace(/{{cidDescription}}/g, data.cidDescription ?? '')
       .replace(/{{issueDateTime}}/g, data.issueDateTime ?? '')
       .replace(/{{certificateId}}/g, data.certificateId ?? '')
+      .replace(/{{validationUrl}}/g, validationUrl)
       .replace('{{signatureImage}}', signatureJpeg)
       .replace('{{qrCodeDataUrl}}', qrCodeDataUrl)
       .replace('{{medicineIcon}}', sharedAssets.medicineIcon);

@@ -68,7 +68,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em {{qrCodeDataUrl}} <br/>
+                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>
@@ -127,7 +127,7 @@ const allTemplates = {
             <div class="footerDetails">
               <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
               <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
-              <p>A validade deste documento pode ser verificada em {{qrCodeDataUrl}}</p>
+              <p>A validade deste documento pode ser verificada em www.validadordedocs.com.br</p>
               <p>Código de Validação: <strong>{{certificateId}}</strong></p>
             </div>
             <div class="signatureImages">
@@ -180,7 +180,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em {{qrCodeDataUrl}} <br />
+                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>

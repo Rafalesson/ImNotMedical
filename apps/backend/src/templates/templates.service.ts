@@ -127,7 +127,7 @@ const allTemplates = {
             <div class="footerDetails">
               <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
               <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
-              <p>A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {{validationUrl}}</p>
+              <p>A validade deste documento pode ser verificada atraves do QR Code ao lado ou acessando {{validationUrl}}</p>
               <p>Código de Validação: <strong>{{certificateId}}</strong></p>
             </div>
             <div class="signatureImages">
@@ -220,7 +220,8 @@ export class TemplatesService {
     }
 
     // Lógica de Geração do QR Code
-    const validationUrl = `${process.env.FRONTEND_URL}/validar/${data.certificateId}`;
+    const validationCode = (data.certificateId ?? '').trim();
+    const validationUrl = `${process.env.FRONTEND_URL}/validar/${encodeURIComponent(validationCode)}`;
     const qrCodeDataUrl = await QRCode.toDataURL(validationUrl);
 
     const { html, css } = template;
@@ -247,7 +248,7 @@ export class TemplatesService {
       .replace(/{{cidCode}}/g, data.cidCode ?? 'Não informado')
       .replace(/{{cidDescription}}/g, data.cidDescription ?? '')
       .replace(/{{issueDateTime}}/g, data.issueDateTime ?? '')
-      .replace(/{{certificateId}}/g, data.certificateId ?? '')
+      .replace(/{{certificateId}}/g, validationCode)
       .replace(/{{validationUrl}}/g, validationUrl)
       .replace('{{signatureImage}}', signatureJpeg)
       .replace('{{qrCodeDataUrl}}', qrCodeDataUrl)
@@ -256,3 +257,4 @@ export class TemplatesService {
     return populatedHtml.replace('</head>', `<style>${css}</style></head>`);
   }
 }
+

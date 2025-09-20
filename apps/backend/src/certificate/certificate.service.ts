@@ -9,6 +9,7 @@ import { calculateAge, numberToWords } from 'src/utils';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Prisma, Sex } from '@prisma/client';
+import { randomBytes } from 'crypto';
 
 type UserWithProfiles = Prisma.UserGetPayload<{
   include: {
@@ -30,7 +31,7 @@ export class CertificateService {
   private async prepareDataForPdf(
     dto: CreateCertificateDto,
     doctorId: number,
-    certificateId: number,
+    certificateCode: string,
   ): Promise<CertificateData> {
     const patientId = dto.patientId ?? 0;
 
@@ -97,15 +98,28 @@ export class CertificateService {
       cidCode: dto.cidCode,
       cidDescription: cid?.description,
       issueDateTime: formattedDateTime,
-      certificateId: certificateId.toString(),
+      certificateId: certificateCode,
     };
+  }
+
+  private async generateUniqueValidationCode(): Promise<string> {
+    while (true) {
+      const candidate = randomBytes(6).toString('hex');
+      const existing = await this.prisma.medicalCertificate.findUnique({
+        where: { validationCode: candidate },
+        select: { id: true },
+      });
+      if (!existing) {
+        return candidate;
+      }
+    }
   }
 
   async generateCertificatePdf(
     dto: CreateCertificateDto,
     doctorId: number,
   ): Promise<Buffer> {
-    const data = await this.prepareDataForPdf(dto, doctorId, 0);
+    const data = await this.prepareDataForPdf(dto, doctorId, 'PRE-VISUALIZACAO');
     const html = await this.templatesService.getPopulatedCertificateHtml(
       data,
       dto.templateId,
@@ -114,8 +128,11 @@ export class CertificateService {
   }
 
   async create(createCertificateDto: CreateCertificateDto, doctorId: number) {
+    const validationCode = await this.generateUniqueValidationCode();
+
     const certificateRecord = await this.prisma.medicalCertificate.create({
       data: {
+        validationCode,
         purpose: createCertificateDto.purpose,
         startDate: createCertificateDto.startDate,
         durationInDays: createCertificateDto.durationInDays,
@@ -132,7 +149,7 @@ export class CertificateService {
     const data = await this.prepareDataForPdf(
       createCertificateDto,
       doctorId,
-      certificateRecord.id,
+      certificateRecord.validationCode,
     );
     const html = await this.templatesService.getPopulatedCertificateHtml(
       data,
@@ -184,14 +201,32 @@ export class CertificateService {
     });
   }
 
-  async validateCertificate(id: number) {
-    const certificate = await this.prisma.medicalCertificate.findUnique({
-      where: { id },
+  async validateCertificate(code: string) {
+    const sanitizedCode = code?.trim();
+    if (!sanitizedCode) {
+      throw new NotFoundException('Atestado nao encontrado.');
+    }
+
+    const normalizedCode = sanitizedCode.toLowerCase();
+
+    let certificate = await this.prisma.medicalCertificate.findUnique({
+      where: { validationCode: normalizedCode },
       include: {
         doctor: { include: { doctorProfile: true } },
         patient: { include: { patientProfile: true } },
       },
     });
+
+    if (!certificate && /^\d+$/.test(normalizedCode)) {
+      certificate = await this.prisma.medicalCertificate.findUnique({
+        where: { id: Number.parseInt(normalizedCode, 10) },
+        include: {
+          doctor: { include: { doctorProfile: true } },
+          patient: { include: { patientProfile: true } },
+        },
+      });
+    }
+
     if (!certificate) {
       throw new NotFoundException('Atestado nao encontrado.');
     }
@@ -334,5 +369,3 @@ export class CertificateService {
     return { message: `${count} atestado(s) deletado(s) com sucesso.`, count };
   }
 }
-
-

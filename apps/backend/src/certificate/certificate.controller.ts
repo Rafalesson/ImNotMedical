@@ -28,15 +28,15 @@ type AuthenticatedRequest = {
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
-  @Get('public/validate/:id')
-  validatePublicCertificate(@Param('id', ParseIntPipe) id: number) {
-    return this.certificateService.validateCertificate(id);
+  @Get('public/validate/:code')
+  validatePublicCertificate(@Param('code') code: string) {
+    return this.certificateService.validateCertificate(code);
   }
 
-  @Get('validate/:id')
+  @Get('validate/:code')
   @UseGuards(AuthGuard)
-  validate(@Param('id', ParseIntPipe) id: number) {
-    return this.certificateService.validateCertificate(id);
+  validate(@Param('code') code: string) {
+    return this.certificateService.validateCertificate(code);
   }
 
   @Post()
@@ -98,3 +98,5 @@ export class CertificateController {
     return this.certificateService.removeMany(idsAsNumbers);
   }
 }
+
+

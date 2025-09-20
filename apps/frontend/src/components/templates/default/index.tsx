@@ -43,6 +43,19 @@ export function DefaultTemplate() {
     : 'Endereço não informado';
     
   const issueDateTime = new Date().toLocaleString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const previewCertificateCode = 'PRE-VISUALIZACAO';
+  const envBaseUrlRaw = process.env.NEXT_PUBLIC_APP_URL || '';
+  const envBaseUrl = envBaseUrlRaw.endsWith('/') ? envBaseUrlRaw.slice(0, -1) : envBaseUrlRaw;
+  let runtimeBaseUrl = envBaseUrl;
+
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    const origin = window.location.origin;
+    runtimeBaseUrl = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+  }
+
+  const validationUrl = `${runtimeBaseUrl || ''}/validar/${previewCertificateCode}`;
+
   const startDate = new Date().toLocaleDateString('pt-BR');
 
   return (
@@ -91,7 +104,7 @@ export function DefaultTemplate() {
           </p>
           <p>
             Documento assinado digitalmente por {doctorName} <br />
-            A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+            A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {validationUrl} <br />
             Código de validação do documento: <strong>PRÉ-VISUALIZAÇÃO</strong>
           </p>
         </div>

@@ -14,13 +14,20 @@ export function Header() {
   
   const hideButtonOnRoutes = ['/validar', '/recuperar-senha', '/redefinir-senha', '/cadastro'];
   const shouldHideButton = hideButtonOnRoutes.some(route => pathname.startsWith(route));
+  const isValidationPage = pathname.startsWith('/validar');
 
   return (
     <header className="sticky top-0 w-full bg-white shadow-sm z-50">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
-        <Link href="/" className="-m-1.5 p-1.5">
-          <span className="text-2xl font-bold text-gray-800 tracking-tight">Zello</span>
-        </Link>
+        {isValidationPage ? (
+          <div className="-m-1.5 p-1.5 cursor-default">
+            <span className="text-2xl font-bold text-gray-800 tracking-tight">Zello</span>
+          </div>
+        ) : (
+          <Link href="/" className="-m-1.5 p-1.5">
+            <span className="text-2xl font-bold text-gray-800 tracking-tight">Zello</span>
+          </Link>
+        )}
 
         {!shouldHideButton && (
           <div>

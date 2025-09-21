@@ -62,6 +62,7 @@ CREATE TABLE "public"."PatientProfile" (
 -- Cria a tabela "MedicalCertificate"
 CREATE TABLE "public"."MedicalCertificate" (
     "id" SERIAL NOT NULL,
+    "validationCode" TEXT,
     "issueDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "templateId" TEXT NOT NULL DEFAULT 'default',
     "purpose" TEXT NOT NULL,
@@ -94,6 +95,7 @@ CREATE UNIQUE INDEX "DoctorProfile_userId_key" ON "public"."DoctorProfile"("user
 CREATE UNIQUE INDEX "PatientProfile_cpf_key" ON "public"."PatientProfile"("cpf");
 CREATE UNIQUE INDEX "PatientProfile_userId_key" ON "public"."PatientProfile"("userId");
 CREATE UNIQUE INDEX "PatientProfile_addressId_key" ON "public"."PatientProfile"("addressId");
+CREATE UNIQUE INDEX "MedicalCertificate_validationCode_key" ON "public"."MedicalCertificate"("validationCode");
 CREATE UNIQUE INDEX "CidCode_code_key" ON "public"."CidCode"("code");
 CREATE INDEX "CidCode_code_idx" ON "public"."CidCode"("code");
 
@@ -104,3 +106,4 @@ ALTER TABLE "public"."PatientProfile" ADD CONSTRAINT "PatientProfile_userId_fkey
 ALTER TABLE "public"."PatientProfile" ADD CONSTRAINT "PatientProfile_addressId_fkey" FOREIGN KEY ("addressId") REFERENCES "public"."Address"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "public"."MedicalCertificate" ADD CONSTRAINT "MedicalCertificate_doctorId_fkey" FOREIGN KEY ("doctorId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "public"."MedicalCertificate" ADD CONSTRAINT "MedicalCertificate_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

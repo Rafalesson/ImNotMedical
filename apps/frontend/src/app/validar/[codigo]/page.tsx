@@ -13,7 +13,8 @@ import { api } from '@/services/api';
 
 const fetchCertificate = async (code: string | null) => {
   // Se o código for nulo ou vazio, não faz a requisição
-  if (!code || !code.trim()) return null;
+  const sanitized = code?.trim();
+  if (!sanitized) return null;
   
   // MODIFICAÇÃO: Chamando o novo endpoint PÚBLICO que criamos no backend
   const response = await api.get(`/certificates/public/validate/${code}`);

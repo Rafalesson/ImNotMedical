@@ -20,6 +20,18 @@ export function ModernTemplate() {
   const startDate = new Date().toLocaleDateString('pt-BR');
   const issueDateTime = new Date().toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' });
 
+  const previewCertificateCode = 'PRE-VISUALIZACAO';
+  const envBaseUrlRaw = process.env.NEXT_PUBLIC_APP_URL || '';
+  const envBaseUrl = envBaseUrlRaw.endsWith('/') ? envBaseUrlRaw.slice(0, -1) : envBaseUrlRaw;
+  let runtimeBaseUrl = envBaseUrl;
+
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    const origin = window.location.origin;
+    runtimeBaseUrl = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+  }
+
+  const validationUrl = `${runtimeBaseUrl || ''}/validar/${previewCertificateCode}`;
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -53,7 +65,7 @@ export function ModernTemplate() {
         <div className={styles.footerDetails}>
           <p>Emitido em: <strong>{issueDateTime}</strong></p>
           <p>Documento assinado digitalmente por <strong>{doctorName}</strong></p>
-          <p>A validade deste documento pode ser verificada em www.validadordedocs.com.br</p>
+          <p>A validade deste documento pode ser verificada atraves do QR Code abaixo ou acessando {validationUrl}</p>
           <p>Código de Validação: <strong>PRÉ-VISUALIZAÇÃO</strong></p>
         </div>
         <div className={styles.signatureImages}>

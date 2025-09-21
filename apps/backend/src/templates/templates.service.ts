@@ -68,7 +68,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+                A validade deste documento pode ser verificada lendo o qrcode abaixo. <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>
@@ -127,7 +127,7 @@ const allTemplates = {
             <div class="footerDetails">
               <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
               <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
-              <p>A validade deste documento pode ser verificada em www.validadordedocs.com.br</p>
+              <p>A validade deste documento pode ser verificada lendo o qrcode ao lado.</p>
               <p>Código de Validação: <strong>{{certificateId}}</strong></p>
             </div>
             <div class="signatureImages">
@@ -164,14 +164,14 @@ const allTemplates = {
               <strong>{{patientCPF}}</strong>, encontra-se sob meus cuidados 
               profissionais, sendo-lhe necessário o afastamento de suas atividades 
               habituais por um período de <strong>{{durationInDays}} 
-              ({{durationInWords}})</strong> dia(s), a contar de <strong>19/09/2025</strong>.
+              ({{durationInWords}})</strong> dia(s), a contar de <strong>{{startDate}}</strong>.
             </p>
             <p class="details-line"><strong>Finalidade:</strong> {{purpose}}</p>
             <p class="details-line"><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>    
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em 19 de Setembro de 2025 às 14:28</p>
+              <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
                 Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
                 <br />
@@ -180,7 +180,7 @@ const allTemplates = {
               </p>
               <p>
                 Documento assinado digitalmente por {{doctorName}} <br />
-                A validade deste documento pode ser verificada em www.validadordedocs.com.br <br />
+                A validade deste documento pode ser verificada lendo o qrcode abaixo. <br />
                 Código de validação do documento: <strong>{{certificateId}}</strong>
               </p>
             </div>

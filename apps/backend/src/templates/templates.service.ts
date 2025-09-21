@@ -51,7 +51,7 @@ const allTemplates = {
                 profissionais na presente data, necessitando de
                 <strong>{{durationInDays}} ({{durationInWords}}) dia(s)</strong> de
                 afastamento de suas atividades laborais/outras, a partir de
-                <strong>16/09/2025</strong>.
+                <strong>{{startDate}}</strong>.
               </p>
               <p><strong>Finalidade:</strong> {{purpose}}</p>
               <p><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>
@@ -59,7 +59,7 @@ const allTemplates = {
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em 16 de Setembro de 2025 às 10:38</p>
+              <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
                 Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
                 <br />
@@ -164,14 +164,14 @@ const allTemplates = {
               <strong>{{patientCPF}}</strong>, encontra-se sob meus cuidados 
               profissionais, sendo-lhe necessário o afastamento de suas atividades 
               habituais por um período de <strong>{{durationInDays}} 
-              ({{durationInWords}})</strong> dia(s), a contar de <strong>{{startDate}}</strong>.
+              ({{durationInWords}})</strong> dia(s), a contar de <strong>19/09/2025</strong>.
             </p>
             <p class="details-line"><strong>Finalidade:</strong> {{purpose}}</p>
             <p class="details-line"><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>    
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em {{issueDateTime}}</p>
+              <p>Emitido em 19 de Setembro de 2025 às 14:28</p>
               <p id="footer_p2">
                 Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
                 <br />

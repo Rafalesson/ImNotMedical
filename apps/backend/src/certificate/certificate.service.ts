@@ -9,6 +9,7 @@ import { calculateAge, numberToWords } from 'src/utils';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Prisma, Sex } from '@prisma/client';
+import { randomBytes } from 'crypto';
 
 type UserWithProfiles = Prisma.UserGetPayload<{
   include: {
@@ -27,10 +28,45 @@ export class CertificateService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  private createCertificateCode(length = 8): string {
+    const alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const bytes = randomBytes(length);
+    let code = '';
+
+    for (let i = 0; i < bytes.length; i++) {
+      code += alphabet[bytes[i] % alphabet.length];
+    }
+
+    return code;
+  }
+
+  private async generateUniqueCertificateCode(): Promise<string> {
+    const maxAttempts = 5;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const code = this.createCertificateCode();
+      const existing = await this.prisma.medicalCertificate.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+
+      if (!existing) {
+        return code;
+      }
+    }
+
+    const fallback = `${this.createCertificateCode()}${Date.now()
+      .toString(36)
+      .slice(-2)
+      .toUpperCase()}`;
+
+    return fallback.slice(0, 12);
+  }
+
   private async prepareDataForPdf(
     dto: CreateCertificateDto,
     doctorId: number,
-    certificateId: number,
+    certificateCode: string,
   ): Promise<CertificateData> {
     const patientId = dto.patientId ?? 0;
 
@@ -97,7 +133,7 @@ export class CertificateService {
       cidCode: dto.cidCode,
       cidDescription: cid?.description,
       issueDateTime: formattedDateTime,
-      certificateId: certificateId.toString(),
+      certificateId: certificateCode || '',
     };
   }
 
@@ -105,7 +141,8 @@ export class CertificateService {
     dto: CreateCertificateDto,
     doctorId: number,
   ): Promise<Buffer> {
-    const data = await this.prepareDataForPdf(dto, doctorId, 0);
+    const previewCode = await this.generateUniqueCertificateCode();
+    const data = await this.prepareDataForPdf(dto, doctorId, previewCode);
     const html = await this.templatesService.getPopulatedCertificateHtml(
       data,
       dto.templateId,
@@ -114,8 +151,11 @@ export class CertificateService {
   }
 
   async create(createCertificateDto: CreateCertificateDto, doctorId: number) {
+    const code = await this.generateUniqueCertificateCode();
+
     const certificateRecord = await this.prisma.medicalCertificate.create({
       data: {
+        code,
         purpose: createCertificateDto.purpose,
         startDate: createCertificateDto.startDate,
         durationInDays: createCertificateDto.durationInDays,
@@ -132,7 +172,7 @@ export class CertificateService {
     const data = await this.prepareDataForPdf(
       createCertificateDto,
       doctorId,
-      certificateRecord.id,
+      certificateRecord.code,
     );
     const html = await this.templatesService.getPopulatedCertificateHtml(
       data,
@@ -184,17 +224,31 @@ export class CertificateService {
     });
   }
 
-  async validateCertificate(id: number) {
-    const certificate = await this.prisma.medicalCertificate.findUnique({
-      where: { id },
-      include: {
-        doctor: { include: { doctorProfile: true } },
-        patient: { include: { patientProfile: true } },
-      },
+  async validateCertificate(identifier: string) {
+    const cleanedIdentifier = identifier.trim();
+    const codeIdentifier = cleanedIdentifier.toUpperCase();
+
+    const include = {
+      doctor: { include: { doctorProfile: true } },
+      patient: { include: { patientProfile: true } },
+    };
+
+    let certificate = await this.prisma.medicalCertificate.findUnique({
+      where: { code: codeIdentifier },
+      include,
     });
+
+    if (!certificate && /^\d+$/.test(cleanedIdentifier)) {
+      certificate = await this.prisma.medicalCertificate.findUnique({
+        where: { id: Number.parseInt(cleanedIdentifier, 10) },
+        include,
+      });
+    }
+
     if (!certificate) {
       throw new NotFoundException('Atestado nao encontrado.');
     }
+
     return {
       issuedAt: certificate.issueDate,
       durationInDays: certificate.durationInDays,

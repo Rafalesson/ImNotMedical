@@ -1,6 +1,27 @@
+﻿import { config as loadEnv } from 'dotenv';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+
+loadEnv();
+
+if (!process.env.JWT_SECRET) {
+  const fallbackEnvPaths = [
+    join(process.cwd(), 'apps', 'backend', '.env'),
+    join(__dirname, '..', '.env'),
+  ];
+
+  for (const envPath of fallbackEnvPaths) {
+    if (existsSync(envPath)) {
+      loadEnv({ path: envPath });
+      if (process.env.JWT_SECRET) {
+        break;
+      }
+    }
+  }
+}
 
 function normalizeOrigin(origin?: string) {
   if (!origin) {
@@ -38,7 +59,11 @@ async function bootstrap() {
         whitelist.add(withWww);
       }
     } catch (error) {
-      console.warn('[CORS] FRONTEND_URL is not a valid URL:', frontendUrl, error);
+      console.warn(
+        '[CORS] FRONTEND_URL is not a valid URL:',
+        frontendUrl,
+        error,
+      );
     }
   }
 
@@ -51,7 +76,9 @@ async function bootstrap() {
       }
 
       const normalizedOrigin = normalizeOrigin(origin);
-      const isAllowed = normalizedOrigin ? whitelist.has(normalizedOrigin) : false;
+      const isAllowed = normalizedOrigin
+        ? whitelist.has(normalizedOrigin)
+        : false;
 
       if (isAllowed) {
         return callback(null, true);

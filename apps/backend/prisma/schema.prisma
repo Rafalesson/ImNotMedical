@@ -1,4 +1,3 @@
-// Endereço: apps/backend/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -48,6 +47,8 @@ model User {
   patientProfile       PatientProfile?
   issuedCertificates   MedicalCertificate[]  @relation("DoctorCertificates")
   receivedCertificates MedicalCertificate[]  @relation("PatientCertificates")
+  issuedPrescriptions   MedicalPrescription[] @relation("DoctorPrescriptions")
+  receivedPrescriptions MedicalPrescription[] @relation("PatientPrescriptions")
 }
 
 model DoctorProfile {
@@ -93,6 +94,22 @@ model MedicalCertificate {
   patientId      Int
 }
 
+model MedicalPrescription {
+  id             Int      @id @default(autoincrement())
+  code           String   @unique @default(cuid())
+  issueDate      DateTime @default(now())
+  templateId     String   @default("default")
+  items          Json
+  generalGuidance String?
+  additionalNotes String?
+  pharmacyToken   String?
+  patientToken    String?
+  pdfUrl          String?
+  doctor         User     @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+  doctorId       Int
+  patient        User     @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  patientId      Int
+}
 model CidCode {
   id          Int    @id @default(autoincrement())
   code        String @unique
@@ -100,3 +117,6 @@ model CidCode {
 
   @@index([code])
 }
+
+
+

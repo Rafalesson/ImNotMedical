@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/app/dashboard/page.tsx (Versão Final Corrigida)
+﻿// EndereÃ§o: apps/frontend/src/app/dashboard/page.tsx (VersÃ£o Final Corrigida)
 'use client';
 
 import Link from 'next/link';
@@ -19,14 +19,14 @@ type Certificate = {
   } | null;
 };
 
-// --- Funções de Busca de Dados ---
+// --- FunÃ§Ãµes de Busca de Dados ---
 const fetchPatientCount = async (): Promise<{ count: number }> => {
   const { data } = await api.get('/patients/count');
   return data;
 };
 
 const fetchRecentCertificates = async (): Promise<Certificate[]> => {
-  // Apontamos para a nova rota dedicada que retorna um array simples dos últimos 5 atestados.
+  // Apontamos para a nova rota dedicada que retorna um array simples dos Ãºltimos 5 atestados.
   const { data } = await api.get('/certificates/recent');
   return data;
 };
@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Atestado</h2>
           </div>
         </Link>
-        <Link href="#" className="h-full">
+        <Link href="/dashboard/receitas/novo" className="h-full">
           <div className="p-6 bg-white rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 h-full transition-colors">
             <PlusCircle className="w-12 h-12 text-green-500 mb-2" />
             <h2 className="text-lg font-semibold text-gray-700 text-center">Emitir Receita</h2>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               certificates.map(cert => (
                 <div key={cert.id} className="p-3 border-b last:border-b-0 hover:bg-gray-50 rounded-md">
                   <p className="font-semibold text-gray-800">
-                    {cert.patient?.patientProfile?.name || 'Paciente não identificado'}
+                    {cert.patient?.patientProfile?.name || 'Paciente nÃ£o identificado'}
                   </p>
                   <p className="text-sm text-gray-500">
                     Emitido em: {new Date(cert.issueDate).toLocaleDateString('pt-BR')}

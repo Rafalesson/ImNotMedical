@@ -388,5 +388,3 @@ export class CertificateService {
     return { message: `${count} atestado(s) deletado(s) com sucesso.`, count };
   }
 }
-
-

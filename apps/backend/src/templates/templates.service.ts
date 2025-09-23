@@ -1,7 +1,8 @@
-// Endereço: apps/backend/src/templates/templates.service.ts
+﻿// Endereço: apps/backend/src/templates/templates.service.ts
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CertificateData } from 'src/certificate/certificate.types';
+import { PrescriptionData } from 'src/prescription/prescription.types';
 import * as QRCode from 'qrcode';
 
 const sharedAssets = {
@@ -61,7 +62,7 @@ const allTemplates = {
             <div>
               <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
-                Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
+                Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />
                 Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
                 CFM Nº 2.382/2024.
@@ -127,7 +128,7 @@ const allTemplates = {
             <div>
               <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
-                Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
+                Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />
                 Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
                 CFM Nº 2.382/2024.
@@ -187,7 +188,7 @@ const allTemplates = {
             <div>
               <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
-                Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
+                Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />
                 Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
                 CFM Nº 2.382/2024.
@@ -219,6 +220,95 @@ const allTemplates = {
   },
 };
 
+const prescriptionTemplates = {
+  default: {
+    html: `<!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Receita Médica</title>
+        </head>
+        <body>
+          <div class="prescription">
+            <header class="header">
+              <h1 class="doctor-name">{{doctorName}}</h1>
+              <p class="doctor-crm">CRM: {{doctorCrm}}{{doctorSpecialtyLabel}}</p>
+            </header>
+            <section class="patient-section">
+              <p><strong>Nome:</strong> {{patientName}}</p>
+              <p><strong>CPF:</strong> {{patientCpf}}</p>
+            </section>
+            <section class="items-section">
+              <ol class="items-list">
+                {{itemsList}}
+              </ol>
+            </section>
+            <section class="guidance-section">
+              <h2>ORIENTAÇÕES GERAIS:</h2>
+              <p>{{generalGuidance}}</p>
+            </section>
+            <section class="additional-notes">
+              <p>{{additionalNotes}}</p>
+            </section>
+            <footer class="footer">
+              <div>
+                <p>Emitido em {{issueDateTime}}</p>
+                <p id="footer_p2">
+                  Atendimento realizado conforme MP nº 2.200-2/2001,
+                  <br />
+                  Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
+                  CFM Nº 2.382/2024.
+                </p>
+                <p>
+                  Documento assinado digitalmente por {{doctorName}} <br />
+                  A validade deste documento pode ser verificada lendo o qrcode abaixo. <br />
+                  Código de validação do documento: <strong>{{prescriptionCode}}</strong>
+                </p>
+              </div>
+              <div class="container_img">
+                <div class="signature-container">
+                  <img
+                    src="{{signatureImage}}"
+                    alt="Imagem da assinatura eletronica"
+                    id="icp_img"
+                  />
+                  <img
+                    src="{{qrCodeDataUrl}}"
+                    alt="QR Code de Validação"
+                    class="qr-code-img"
+                  />
+                </div>
+              </div>
+            </footer>
+          </div>
+        </body>
+      </html>`,
+    css: `body{font-family:'Times New Roman',Times,serif;background-color:#f7f7f7;color:#111827;margin:0;padding:30px;}
+      .prescription{max-width:780px;margin:0 auto;background-color:#fff;border:1px solid #e5e7eb;padding:36px 42px;box-shadow:0 10px 30px rgba(15,23,42,0.08);} 
+      .header{text-align:center;border-bottom:1px solid #e5e7eb;padding-bottom:20px;margin-bottom:24px;} 
+      .doctor-name{color:#2c8ec0;font-size:24px;font-weight:700;margin:0;}
+      .doctor-crm{margin:6px 0 0;font-size:14px;color:#374151;letter-spacing:0.4px;}
+      .patient-section{margin-bottom:24px;font-size:14px;line-height:1.6;}
+      .patient-section p{margin:4px 0;}
+      .items-section{margin-bottom:26px;}
+      .items-list{list-style:decimal;padding-left:20px;margin:0;}
+      .items-list li{margin-bottom:14px;font-size:15px;}
+      .item-title{font-weight:600;display:block;margin-bottom:4px;}
+      .item-description,.item-observation{font-size:14px;color:#374151;margin:2px 0;line-height:1.6;}
+      .guidance-section{margin-bottom:18px;}
+      .guidance-section h2{font-size:15px;margin-bottom:8px;letter-spacing:0.6px;}
+      .guidance-section p{font-size:14px;line-height:1.6;text-align:justify;}
+      .additional-notes p{font-size:14px;line-height:1.6;text-align:justify;}
+      .footer{text-align:center;font-size:9pt;color:#666;margin-top:20px;}
+      #footer_p2{border-top:1px solid #ccc;padding-top:10px;margin-top:10px;}
+      .container_img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-top:1rem;}
+      #icp_img{width:200px;}
+      #signature_img{width:100px;}
+      .signature-container{display:flex;align-items:center;justify-content:center;gap:20px;}
+      .qr-code-img{width:100px;height:100px;}`,
+  },
+};
+
 @Injectable()
 export class TemplatesService {
   public async getPopulatedCertificateHtml(
@@ -241,6 +331,11 @@ export class TemplatesService {
 
     const signatureJpeg = sharedAssets.signatureImage;
 
+    // Garantir que o horário exibido esteja no fuso de Brasília (America/Sao_Paulo)
+    const formattedIssueDateTime = this.formatToSaoPaulo(
+      data.issueDateTime ?? '',
+    );
+
     const populatedHtml = html
       .replace(/{{doctorName}}/g, data.doctorName ?? '')
       .replace(/{{doctorSpecialty}}/g, data.doctorSpecialty ?? 'Clínico Geral')
@@ -260,12 +355,164 @@ export class TemplatesService {
       .replace(/{{purpose}}/g, data.purpose ?? '')
       .replace(/{{cidCode}}/g, data.cidCode ?? 'Não informado')
       .replace(/{{cidDescription}}/g, data.cidDescription ?? '')
-      .replace(/{{issueDateTime}}/g, data.issueDateTime ?? '')
+      .replace(/{{issueDateTime}}/g, formattedIssueDateTime)
       .replace(/{{certificateId}}/g, data.certificateId ?? '')
       .replace('{{signatureImage}}', signatureJpeg)
       .replace('{{qrCodeDataUrl}}', qrCodeDataUrl)
       .replace('{{medicineIcon}}', sharedAssets.medicineIcon);
 
     return populatedHtml.replace('</head>', `<style>${css}</style></head>`);
+  }
+
+  public async getPopulatedPrescriptionHtml(
+    data: PrescriptionData,
+    templateId: string = 'default',
+  ): Promise<string> {
+    const template = prescriptionTemplates[templateId];
+
+    if (!template) {
+      throw new NotFoundException(
+        `Template com ID '${templateId}' não foi encontrado no código.`,
+      );
+    }
+
+    const prescriptionCode = data.prescriptionCode ?? '';
+    const baseUrl = process.env.FRONTEND_URL ?? '';
+    const validationUrl = `${baseUrl}/receitas/validar/${prescriptionCode}`;
+    const qrCodeDataUrl = await QRCode.toDataURL(validationUrl);
+
+    const signatureJpeg = sharedAssets.signatureImage;
+    const items = data.items ?? [];
+    const itemsHtml =
+      items.length > 0
+        ? items
+            .map((item) => {
+              const parts: string[] = [];
+              parts.push('<li>');
+              parts.push(`<span class="item-title">${item.title}</span>`);
+              const description = this.formatMultilineText(item.description);
+              if (description) {
+                parts.push(`<p class="item-description">${description}</p>`);
+              }
+              const observation = this.formatMultilineText(item.observation);
+              if (observation) {
+                parts.push(`<p class="item-observation">${observation}</p>`);
+              }
+              parts.push('</li>');
+              return parts.join('');
+            })
+            .join('')
+        : '<li><span class="item-title">Receita não informada</span></li>';
+
+    const specialtyLabel =
+      data.doctorSpecialty && data.doctorSpecialty.trim().length > 0
+        ? ` - ${data.doctorSpecialty.trim()}`
+        : '';
+
+    const generalGuidance = this.formatMultilineText(
+      data.generalGuidance,
+      'Orientações não informadas.',
+    );
+
+    const additionalNotes = this.formatMultilineText(
+      data.additionalNotes,
+      'Se persistirem os sintomas, procurar um Pronto Atendimento.',
+    );
+
+    const formattedIssueDateTime = this.formatToSaoPaulo(
+      data.issueDateTime ?? '',
+    );
+
+    const populatedHtml = template.html
+      .replace(/{{doctorName}}/g, data.doctorName ?? '')
+      .replace(/{{doctorCrm}}/g, data.doctorCrm ?? '')
+      .replace(/{{doctorSpecialtyLabel}}/g, specialtyLabel)
+      .replace(/{{patientName}}/g, data.patientName ?? '')
+      .replace(/{{patientCpf}}/g, data.patientCpf ?? '')
+      .replace(/{{issueDateTime}}/g, formattedIssueDateTime)
+      .replace('{{itemsList}}', itemsHtml)
+      .replace('{{generalGuidance}}', generalGuidance)
+      .replace('{{additionalNotes}}', additionalNotes)
+      .replace(/{{prescriptionCode}}/g, prescriptionCode)
+      .replace('{{signatureImage}}', signatureJpeg)
+      .replace('{{qrCodeDataUrl}}', qrCodeDataUrl);
+
+    return populatedHtml.replace(
+      '</head>',
+      `<style>${template.css}</style></head>`,
+    );
+  }
+
+  private formatMultilineText(
+    value?: string | null,
+    fallback: string = '',
+  ): string {
+    if (!value || value.trim().length === 0) {
+      return fallback;
+    }
+
+    return value
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join('<br />');
+  }
+
+  /**
+   * Formata uma data/hora para o fuso de Brasília (America/Sao_Paulo) em formato
+   * legível: dd/MM/yyyy HH:mm (ex: 23/09/2025 14:30).
+   * Aceita strings ISO ou objetos Date. Se a entrada for inválida, retorna string vazia.
+   */
+  private formatToSaoPaulo(value?: string | Date | null): string {
+    // Se não foi fornecido, usa o momento atual
+    let date: Date;
+
+    if (!value) {
+      date = new Date();
+    } else if (value instanceof Date) {
+      date = value;
+    } else if (typeof value === 'string') {
+      // Tenta parse padrão (ISO)
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        date = parsed;
+      } else if (/^\d+$/.test(value.trim())) {
+        // Epoch em ms
+        const num = Number(value.trim());
+        const fromNum = new Date(num);
+        if (!Number.isNaN(fromNum.getTime())) {
+          date = fromNum;
+        } else {
+          // Se não consegue parsear, assume que a string já está em formato legível e retorna como está
+          return value;
+        }
+      } else {
+        // Se não é ISO nem epoch, assume string legível (ex.: '23/09/2025 14:30') e retorna
+        return value;
+      }
+    } else {
+      return '';
+    }
+
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      };
+
+      const parts = new Intl.DateTimeFormat('pt-BR', options).formatToParts(
+        date,
+      );
+      const get = (type: string) =>
+        parts.find((p) => p.type === type)?.value ?? '';
+      return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')}`;
+    } catch (err) {
+      return '';
+    }
   }
 }

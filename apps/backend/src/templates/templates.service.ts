@@ -124,15 +124,29 @@ const allTemplates = {
             </div>
           </main>
           <footer class="footer">
-            <div class="footerDetails">
-              <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
-              <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
-              <p>A validade deste documento pode ser verificada lendo o qrcode ao lado.</p>
-              <p>Código de Validação: <strong>{{certificateId}}</strong></p>
+            <div>
+              <p>Emitido em {{issueDateTime}}</p>
+              <p id="footer_p2">
+                Atendimento realizado via telemedicina, conforme MP nº 2.200-2/2001,
+                <br />
+                Resolução Nº CFM 2.299/2021, Resolução CFM Nº 2.381/2024 e Resolução
+                CFM Nº 2.382/2024.
+              </p>
+              <p>
+                Documento assinado digitalmente por {{doctorName}} <br />
+                A validade deste documento pode ser verificada lendo o qrcode abaixo. <br />
+                Código de validação do documento: <strong>{{certificateId}}</strong>
+              </p>
             </div>
-            <div class="signatureImages">
-                <img src="{{signatureImage}}" alt="Selo ICP Brasil" class="icpSeal" />
-                <img src="{{qrCodeDataUrl}}" alt="QR Code" class="qr-code-img" />
+            <div class="container_img">
+                <div class="signature-container">
+                    <img
+                        src="{{signatureImage}}"
+                        alt="Imagem da assinatura eletronica"
+                        id="icp_img"
+                    />
+                    <img src="{{qrCodeDataUrl}}" alt="QR Code" class="qr-code-img" />
+                </div>
             </div>
           </footer>
         </div>
@@ -140,7 +154,7 @@ const allTemplates = {
       </html>
     `,
     css: `
-      .container{font-family:'Inter',sans-serif;color:#111827;background-color:white;padding:2rem}.header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:1rem;border-bottom:2px solid #3b82f6}.logo svg{height:50px;fill:#3b82f6}.doctorInfo{text-align:right}.doctorName{font-size:1.15rem;font-weight:600;margin:0}.doctorSpec,.doctorCrm{font-size:.875rem;color:#4b5563;margin:2px 0}.main{flex-grow:1;padding-top:2rem}.mainTitle{font-size:1.875rem;font-weight:700;text-align:center;margin-bottom:2rem;color:#1f2937}.mainText{font-size:1rem;line-height:1.75;text-align:justify;margin-bottom:2rem}.details{background-color:#f9fafb;border-radius:8px;padding:1rem}.detailItem{padding:.75rem 0;border-bottom:1px solid #e5e7eb}.detailItem:last-child{border-bottom:none}.detailItem span{font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:4px}.detailItem p{margin:0;font-size:1rem}.footer{margin-top:5rem;display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:#6b7280; gap:.5rem;}.footerDetails{text-align:left;flex-grow:1}.footerDetails p{margin:2px 0}.signatureImages{display:flex;flex-direction:row;align-items:center;gap:.5rem}.icpSeal{max-height:100px;}.qr-code-img{width:100px;height:100px}
+      .container{font-family:'Inter',sans-serif;color:#111827;background-color:white;padding:2rem}.header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:1rem;border-bottom:2px solid #3b82f6}.logo svg{height:50px;fill:#3b82f6}.doctorInfo{text-align:right}.doctorName{font-size:1.15rem;font-weight:600;margin:0}.doctorSpec,.doctorCrm{font-size:.875rem;color:#4b5563;margin:2px 0}.main{flex-grow:1;padding-top:2rem}.mainTitle{font-size:1.875rem;font-weight:700;text-align:center;margin-bottom:2rem;color:#1f2937}.mainText{font-size:1rem;line-height:1.75;text-align:justify;margin-bottom:2rem}.details{background-color:#f9fafb;border-radius:8px;padding:1rem}.detailItem{padding:.75rem 0;border-bottom:1px solid #e5e7eb}.detailItem:last-child{border-bottom:none}.detailItem span{font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:4px}.detailItem p{margin:0;font-size:1rem}.footer{text-align:center;font-size:9pt;color:#666;margin-top:auto;padding-top:15mm}#footer_p2{border-top:1px solid #ccc;padding-top:10px;margin-top:10px}.container_img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-top:1rem}#icp_img{width:200px}#signature_img{width:100px}.signature-container{display:flex;align-items:center;justify-content:center;gap:20px}.qr-code-img{width:100px;height:100px}
     `,
   },
 

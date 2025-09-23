@@ -116,7 +116,7 @@ const allTemplates = {
             <h1 class="mainTitle">Atestado Médico</h1>
             <p class="mainText">
               Atesto, para os devidos fins, que o(a) paciente <strong>{{patientName}}</strong> portador(a) do CPF nº <strong>{{patientCPF}}</strong> necessita de <strong>{{durationInDays}} dia(s)</strong> de afastamento de suas atividades
-              a partir de <strong>22/09/2025</strong>, por motivos de saúde.
+              a partir de <strong>{{startDate}}</strong>, por motivos de saúde.
             </p>
             <div class="details">
               <div class="detailItem"><span>Finalidade</span><p>{{purpose}}</p></div>
@@ -125,7 +125,7 @@ const allTemplates = {
           </main>
           <footer class="footer">
             <div class="footerDetails">
-              <p>Emitido em: <strong>22 de Setembro às 16:52</strong></p>
+              <p>Emitido em: <strong>{{issueDateTime}}</strong></p>
               <p>Documento assinado digitalmente por <strong>{{doctorName}}</strong></p>
               <p>A validade deste documento pode ser verificada lendo o qrcode ao lado.</p>
               <p>Código de Validação: <strong>{{certificateId}}</strong></p>

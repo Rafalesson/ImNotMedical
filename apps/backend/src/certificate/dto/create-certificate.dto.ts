@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsDateString,
+  IsNotEmpty,
+  IsString,
+} from 'class-validator';
 
 export class CreateCertificateDto {
   @Type(() => Number)
@@ -36,4 +42,3 @@ export class CreateCertificateDto {
   @IsString()
   templateId?: string;
 }
-

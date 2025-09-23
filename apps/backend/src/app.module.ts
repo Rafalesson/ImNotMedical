@@ -1,11 +1,13 @@
-// src/app.module.ts (versão final com servidor de arquivos estáticos)
+﻿// src/app.module.ts (versÃ£o final com servidor de arquivos estÃ¡ticos)
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { CertificateModule } from './certificate/certificate.module';
+import { PrescriptionModule } from './prescription/prescription.module';
 import { PatientModule } from './patient/patient.module';
 import { PdfModule } from './pdf/pdf.module';
 import { TemplatesModule } from './templates/templates.module';
@@ -16,6 +18,10 @@ import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [join(__dirname, '..', '.env'), '.env'],
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'storage'),
       serveRoot: '/storage',
@@ -24,6 +30,7 @@ import { MailModule } from './mail/mail.module';
     PrismaModule,
     AuthModule,
     CertificateModule,
+    PrescriptionModule,
     PatientModule,
     PdfModule,
     TemplatesModule,

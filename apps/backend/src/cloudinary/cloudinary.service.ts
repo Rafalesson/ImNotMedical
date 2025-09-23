@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+﻿import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { Readable } from 'stream';
 
 @Injectable()
 export class CloudinaryService {
   private readonly certificatesFolder = 'certificates';
+  private readonly prescriptionsFolder = 'prescriptions';
   private readonly isConfigured: boolean;
 
   constructor() {
@@ -41,22 +42,46 @@ export class CloudinaryService {
     return this.uploadRaw(buffer, { publicId, format: 'pdf' });
   }
 
-  // Remove um PDF previamente enviado a partir da URL da Cloudinary.
+  // Envia o buffer PDF para a pasta de receitas mantendo o id do registro como public id.
+  async uploadPrescriptionPdf(
+    buffer: Buffer,
+    identifier: string,
+  ): Promise<UploadApiResponse> {
+    this.ensureConfigured();
+    const publicId = `${this.prescriptionsFolder}/${identifier}`;
+    return this.uploadRaw(buffer, { publicId, format: 'pdf' });
+  }
+
+  // Remove um PDF de atestado previamente enviado a partir da URL da Cloudinary.
   async deleteCertificatePdfByUrl(
     url: string | null | undefined,
   ): Promise<void> {
-    this.ensureConfigured();
-    const publicId = this.extractPublicId(url);
-    if (!publicId) {
-      return;
-    }
+    await this.deleteAssetByUrl(url, this.certificatesFolder);
+  }
 
-    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+  // Remove um PDF de receita previamente enviado a partir da URL da Cloudinary.
+  async deletePrescriptionPdfByUrl(
+    url: string | null | undefined,
+  ): Promise<void> {
+    await this.deleteAssetByUrl(url, this.prescriptionsFolder);
   }
 
   // Permite que outras classes verifiquem se a integracao esta ativa.
   isEnabled(): boolean {
     return this.isConfigured;
+  }
+
+  private async deleteAssetByUrl(
+    url: string | null | undefined,
+    folder: string,
+  ): Promise<void> {
+    this.ensureConfigured();
+    const publicId = this.extractPublicId(url, folder);
+    if (!publicId) {
+      return;
+    }
+
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
   }
 
   // Helper compartilhado para enviar o buffer como asset do tipo raw.
@@ -93,7 +118,10 @@ export class CloudinaryService {
   }
 
   // Extrai o public id da Cloudinary a partir da URL para permitir exclusoes futuras.
-  private extractPublicId(url: string | null | undefined): string | null {
+  private extractPublicId(
+    url: string | null | undefined,
+    expectedFolder: string,
+  ): string | null {
     if (!url) {
       return null;
     }
@@ -109,7 +137,7 @@ export class CloudinaryService {
     const withoutResource = withoutVersion.replace(/^raw\//, '');
     const withoutExtension = withoutResource.replace(/\.[^./]+$/, '');
 
-    if (!withoutExtension.startsWith(this.certificatesFolder)) {
+    if (!withoutExtension.startsWith(expectedFolder)) {
       return null;
     }
 

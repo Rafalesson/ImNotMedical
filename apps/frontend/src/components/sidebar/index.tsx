@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/sidebar/index.tsx (Lógica de 'ativo' corrigida)
+﻿// EndereÃ§o: apps/frontend/src/components/sidebar/index.tsx (LÃ³gica de 'ativo' corrigida)
 'use client';
 
 import { LayoutDashboard, FileText, Calendar, LogOut } from 'lucide-react';
@@ -18,6 +18,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Atestados', href: '/dashboard/atestados', icon: FileText },
+    { name: 'Receitas', href: '/dashboard/receitas', icon: FileText },
     { name: 'Agenda', href: '/dashboard/agenda', icon: Calendar },
   ];
 
@@ -27,13 +28,13 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       <nav className="flex-grow">
         <ul>
           {navigation.map((item) => {
-            // --- INÍCIO DA CORREÇÃO ---
-            // Esta nova lógica garante que o Dashboard só fica ativo em sua própria página,
-            // enquanto os outros itens ficam ativos também em suas sub-páginas.
+            // --- INÃCIO DA CORREÃ‡ÃƒO ---
+            // Esta nova lÃ³gica garante que o Dashboard sÃ³ fica ativo em sua prÃ³pria pÃ¡gina,
+            // enquanto os outros itens ficam ativos tambÃ©m em suas sub-pÃ¡ginas.
             const isActive = item.href === '/dashboard'
               ? pathname === item.href
               : pathname.startsWith(item.href);
-            // --- FIM DA CORREÇÃO ---
+            // --- FIM DA CORREÃ‡ÃƒO ---
 
             return (
               <li key={item.name} className="mb-4">
@@ -57,7 +58,7 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
       <div className="mt-auto">
         <div className="mb-4 p-2 border-t border-gray-700">
             <p className="font-semibold">{user?.doctorProfile?.name || user?.email}</p>
-            <p className="text-sm text-gray-400">{user?.role === 'DOCTOR' ? 'Médico(a)' : 'Usuário'}</p>
+            <p className="text-sm text-gray-400">{user?.role === 'DOCTOR' ? 'MÃ©dico(a)' : 'UsuÃ¡rio'}</p>
         </div>
         <button 
             onClick={signOut} 
@@ -69,3 +70,4 @@ export function Sidebar({ closeSidebar }: SidebarProps) {
     </aside>
   );
 }
+

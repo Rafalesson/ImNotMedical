@@ -86,14 +86,8 @@ export default function PrescriptionValidatePage({
           </div>
         ) : (
           <ValidationResult
-            data={data}
-            errorMessage={customError}
-            emptyState={{
-              title: 'Valide suas receitas digitais',
-              description:
-                'As receitas emitidas pela plataforma possuem autenticidade digital e podem ser confirmadas aqui.',
-              icon: HelpCircle,
-            }}
+            result={data}
+            error={customError}
           />
         )}
       </div>

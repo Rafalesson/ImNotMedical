@@ -1,0 +1,38 @@
+name: Prisma Migrate Deploy (Production)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  migrate:
+    name: Run Prisma Migrations on Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install backend dependencies
+        working-directory: ./apps/backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./apps/backend
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: npx prisma generate --schema=./prisma/schema.prisma
+
+      - name: Deploy Prisma Migrations
+        working-directory: ./apps/backend
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          npx prisma migrate deploy --schema=./prisma/schema.prisma
+          npx prisma migrate status --schema=./prisma/schema.prisma

@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useContext } from 'react';
 import { usePathname } from 'next/navigation';
+import { LogIn, LayoutDashboard, LogOut } from 'lucide-react';
 import { AuthContext } from '@/contexts/AuthProvider';
 
 export function Header() {

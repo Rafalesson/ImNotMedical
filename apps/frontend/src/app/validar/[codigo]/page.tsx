@@ -56,7 +56,7 @@ export default function ValidatePage({ params }: { params: { codigo: string } })
     <PublicLayout>
       <div className="w-full max-w-xl rounded-lg bg-white p-8 shadow-lg lg:max-w-3xl">
         <h1 className="mb-2 text-center text-2xl font-bold text-gray-800">
-          Validador de Documentos
+          Validador de Atestados
         </h1>
         <p className="text-center text-gray-500 mb-6">
           Insira o código único do documento para verificar sua autenticidade.

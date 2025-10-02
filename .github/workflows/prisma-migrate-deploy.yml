@@ -21,7 +21,16 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: ./apps/backend
-        run: npm ci
+        run: |
+          echo "Listing files in $(pwd) for debug:"
+          ls -la
+          if [ -f package-lock.json ]; then
+            echo "package-lock.json found — running npm ci"
+            npm ci
+          else
+            echo "package-lock.json not found — falling back to npm install"
+            npm install
+          fi
 
       - name: Generate Prisma Client
         working-directory: ./apps/backend

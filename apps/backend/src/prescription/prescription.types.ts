@@ -12,6 +12,8 @@ export interface PrescriptionData {
   doctorPhone?: string | null;
   patientName: string;
   patientCpf: string;
+  patientAge?: string | null;
+  patientSex?: string | null;
   issueDateTime: string;
   items: PrescriptionItemData[];
   generalGuidance?: string | null;

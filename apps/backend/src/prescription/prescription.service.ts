@@ -5,7 +5,8 @@ import { TemplatesService } from 'src/templates/templates.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { PrescriptionData } from './prescription.types';
-import { Prisma } from '@prisma/client';
+import { calculateAge } from 'src/utils';
+import { Prisma, Sex } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -104,6 +105,23 @@ export class PrescriptionService {
       ? `${doctor.doctorProfile.address.street}, ${doctor.doctorProfile.address.number} - ${doctor.doctorProfile.address.city}/${doctor.doctorProfile.address.state}`
       : 'Endereço não informado';
 
+    const patientAge = (
+      patient.patientProfile.dateOfBirth
+        ? calculateAge(new Date(patient.patientProfile.dateOfBirth)).toString()
+        : null
+    );
+
+    const patientSex = (function () {
+      switch (patient.patientProfile.sex) {
+        case Sex.MALE:
+          return 'Masculino';
+        case Sex.FEMALE:
+          return 'Feminino';
+        default:
+          return 'Não informado';
+      }
+    })();
+
     const issueDate = new Date();
 
     return {
@@ -114,6 +132,8 @@ export class PrescriptionService {
       doctorPhone: doctor.doctorProfile.phone,
       patientName: patient.patientProfile.name,
       patientCpf: patient.patientProfile.cpf,
+      patientAge: patientAge,
+      patientSex: patientSex,
       issueDateTime: this.formatIssueDateTime(issueDate),
       items: dto.items.map((item) => ({
         title: item.title,
@@ -281,12 +301,10 @@ export class PrescriptionService {
       doctorName: prescription.doctor.doctorProfile?.name,
       doctorCrm: prescription.doctor.doctorProfile?.crm,
       patientName:
-        prescription.patient.patientProfile?.name
-          .split(' ')
-          .map((word, index) => (index === 0 ? word : `${word.charAt(0)}.`))
-          .join(' ') || '',
+        prescription.patient.patientProfile?.name?.trim() || '',
       pharmacyToken: prescription.pharmacyToken,
       patientToken: prescription.patientToken,
+      pdfUrl: prescription.pdfUrl ?? null,
     };
   }
 
@@ -373,3 +391,4 @@ export class PrescriptionService {
     };
   }
 }
+

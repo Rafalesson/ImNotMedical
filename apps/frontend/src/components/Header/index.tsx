@@ -5,16 +5,15 @@ import Link from 'next/link';
 import { useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import { AuthContext } from '@/contexts/AuthProvider';
-import { LogIn, LayoutDashboard, LogOut } from 'lucide-react'; // Importamos o ícone de LogOut
 
 export function Header() {
   // 1. Agora pegamos não só 'isAuthenticated', mas também 'user' e 'signOut'
   const { isAuthenticated, user, signOut } = useContext(AuthContext);
   const pathname = usePathname();
   
-  const hideButtonOnRoutes = ['/validar', '/recuperar-senha', '/redefinir-senha', '/cadastro'];
+  const hideButtonOnRoutes = ['/validar', '/receitas/validar', '/recuperar-senha', '/redefinir-senha', '/cadastro'];
   const shouldHideButton = hideButtonOnRoutes.some(route => pathname.startsWith(route));
-  const isValidationRoute = pathname.startsWith('/validar');
+  const isValidationRoute = pathname.startsWith('/validar') || pathname.startsWith('/receitas/validar');
 
   return (
     <header className="sticky top-0 w-full bg-white shadow-sm z-50">

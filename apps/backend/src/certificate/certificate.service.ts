@@ -95,17 +95,6 @@ export class CertificateService {
       ? await this.prisma.cidCode.findUnique({ where: { code: dto.cidCode } })
       : null;
     const issueDate = new Date();
-    const formattedDateTime =
-      issueDate.toLocaleString('pt-BR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }) +
-      ' as ' +
-      issueDate.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
 
     return {
       doctorName: doctor.doctorProfile.name,
@@ -132,7 +121,7 @@ export class CertificateService {
       purpose: dto.purpose,
       cidCode: dto.cidCode,
       cidDescription: cid?.description,
-      issueDateTime: formattedDateTime,
+      issueDateTime: issueDate.toISOString(),
       certificateId: certificateCode || '',
     };
   }
@@ -254,11 +243,8 @@ export class CertificateService {
       durationInDays: certificate.durationInDays,
       doctorName: certificate.doctor.doctorProfile?.name,
       doctorCrm: certificate.doctor.doctorProfile?.crm,
-      patientName:
-        certificate.patient.patientProfile?.name
-          .split(' ')
-          .map((word, index) => (index === 0 ? word : `${word.charAt(0)}.`))
-          .join(' ') || '',
+      patientName: certificate.patient.patientProfile?.name?.trim() || '',
+      pdfUrl: certificate.pdfUrl ?? null,
     };
   }
 

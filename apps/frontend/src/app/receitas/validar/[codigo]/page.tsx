@@ -72,24 +72,37 @@ export default function PrescriptionValidatePage({
             />
             <button
               type="submit"
-              className="flex items-center justify-center rounded-md bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700"
+              className="flex items-center justify-center whitespace-nowrap rounded-md bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700"
             >
               Validar Receita
             </button>
           </div>
         </form>
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed border-gray-300 p-6 text-gray-500">
-            <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
-            <p>Consultando dados da receita...</p>
-          </div>
-        ) : (
-          <ValidationResult
-            result={data}
-            error={customError}
-          />
-        )}
+        <div className="mt-8 min-h-[200px] flex items-center justify-center">
+          {isLoading && <p className="text-gray-500 animate-pulse">Validando...</p>}
+
+          {(data || customError) && !isLoading && (
+            <ValidationResult result={data} error={customError} />
+          )}
+
+          {!isLoading && !data && !customError && (
+            <div className="w-full rounded-lg border-2 border-dashed border-gray-200 p-6 text-center text-gray-600">
+              <HelpCircle className="mx-auto mb-3 h-8 w-8 text-gray-400" />
+              <h3 className="mb-2 font-semibold text-gray-800">Onde encontro o código?</h3>
+              <p className="mb-4 text-sm text-gray-500">
+                O código de validação está localizado no rodapé da receita em PDF que você recebeu.
+              </p>
+              <Image
+                src="/assets/dica_codigo.png"
+                alt="Exemplo de onde encontrar o código na receita"
+                width={600}
+                height={200}
+                className="mx-auto rounded-md border shadow-sm"
+              />
+            </div>
+          )}
+        </div>
       </div>
     </PublicLayout>
   );

@@ -95,10 +95,10 @@ export default function ValidatePage({ params }: { params: { codigo: string } })
                 O código de validação está localizado no rodapé do documento em PDF que você recebeu.
               </p>
               <Image
-                src="/dicas.png"
+                src="/assets/dica_codigo.png"
                 alt="Exemplo de onde encontrar o código no atestado"
-                width={500}
-                height={150}
+                width={600}
+                height={200}
                 className="mx-auto rounded-md border shadow-sm"
               />
             </div>

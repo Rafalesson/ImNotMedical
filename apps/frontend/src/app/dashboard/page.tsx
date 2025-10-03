@@ -177,7 +177,7 @@ export default function DashboardPage() {
                 const isCertificate = document.type === 'certificate';
                 const accentClasses = isCertificate
                   ? 'border-l-4 border-blue-500/80 bg-blue-50/60'
-                  : 'border-l-4 border-green-500/80 bg-green-50/60';
+                  : 'border-l-4 border-green-500/80 bg-white';
                 const badgeClasses = isCertificate
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-green-100 text-green-700';

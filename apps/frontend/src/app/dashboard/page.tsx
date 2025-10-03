@@ -2,17 +2,20 @@
 
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { CertificatesListSkeleton } from './certificates-list-skeleton';
+
+type PatientProfile = {
+  name?: string | null;
+};
 
 type CertificateApi = {
   id: string;
   issueDate: string;
   patient: {
-    patientProfile: {
-      name?: string | null;
-    } | null;
+    patientProfile: PatientProfile | null;
   } | null;
 };
 
@@ -20,10 +23,16 @@ type PrescriptionApi = {
   id: string;
   issueDate: string;
   patient: {
-    patientProfile: {
-      name?: string | null;
-    } | null;
+    patientProfile: PatientProfile | null;
   } | null;
+};
+
+type PaginatedResponse<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
 };
 
 type RecentDocument = {
@@ -39,12 +48,17 @@ const fetchPatientCount = async (): Promise<{ count: number }> => {
 };
 
 const fetchRecentDocuments = async (): Promise<RecentDocument[]> => {
-  const [certificatesResponse, prescriptionsResponse] = await Promise.all([
-    api.get<CertificateApi[]>('/certificates/recent'),
-    api.get<PrescriptionApi[]>('/prescriptions/recent'),
+  const limit = 50;
+  const [certificateResponse, prescriptionResponse] = await Promise.all([
+    api.get<PaginatedResponse<CertificateApi>>('/certificates/my-certificates', {
+      params: { page: 1, limit },
+    }),
+    api.get<PaginatedResponse<PrescriptionApi>>('/prescriptions/my-prescriptions', {
+      params: { page: 1, limit },
+    }),
   ]);
 
-  const certificates: RecentDocument[] = (certificatesResponse.data ?? []).map(
+  const certificates: RecentDocument[] = (certificateResponse.data?.data ?? []).map(
     (cert) => ({
       id: `certificate-${cert.id}`,
       issueDate: cert.issueDate,
@@ -54,23 +68,19 @@ const fetchRecentDocuments = async (): Promise<RecentDocument[]> => {
     }),
   );
 
-  const prescriptions: RecentDocument[] = (
-    prescriptionsResponse.data ?? []
-  ).map((prescription) => ({
-    id: `prescription-${prescription.id}`,
-    issueDate: prescription.issueDate,
-    patientName:
-      prescription.patient?.patientProfile?.name?.trim() ??
-      'Paciente não identificado',
-    type: 'prescription',
-  }));
+  const prescriptions: RecentDocument[] = (prescriptionResponse.data?.data ?? []).map(
+    (prescription) => ({
+      id: `prescription-${prescription.id}`,
+      issueDate: prescription.issueDate,
+      patientName:
+        prescription.patient?.patientProfile?.name?.trim() ??
+        'Paciente não identificado',
+      type: 'prescription',
+    }),
+  );
 
   return [...certificates, ...prescriptions]
-    .sort(
-      (a, b) =>
-        new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime(),
-    )
-    .slice(0, 5);
+    .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
 };
 
 export default function DashboardPage() {
@@ -87,6 +97,36 @@ export default function DashboardPage() {
     queryKey: ['recentDocuments'],
     queryFn: fetchRecentDocuments,
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [recentDocuments]);
+
+  const paginatedDocuments = useMemo(() => {
+    if (!recentDocuments || recentDocuments.length === 0) {
+      return [];
+    }
+    const start = (currentPage - 1) * itemsPerPage;
+    return recentDocuments.slice(start, start + itemsPerPage);
+  }, [recentDocuments, currentPage]);
+
+  const totalPages = useMemo(() => {
+    if (!recentDocuments || recentDocuments.length === 0) {
+      return 1;
+    }
+    return Math.ceil(recentDocuments.length / itemsPerPage);
+  }, [recentDocuments]);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div>
@@ -132,8 +172,8 @@ export default function DashboardPage() {
 
         {!isLoadingDocuments && !isDocumentsError && (
           <div className="space-y-2">
-            {recentDocuments && recentDocuments.length > 0 ? (
-              recentDocuments.map((document) => {
+            {paginatedDocuments.length > 0 ? (
+              paginatedDocuments.map((document) => {
                 const isCertificate = document.type === 'certificate';
                 const accentClasses = isCertificate
                   ? 'border-l-4 border-blue-500/80 bg-blue-50/60'
@@ -177,6 +217,31 @@ export default function DashboardPage() {
             ) : (
               <p className="text-gray-500 p-3">Nenhum documento emitido recentemente.</p>
             )}
+          </div>
+        )}
+
+        {!isLoadingDocuments && !isDocumentsError && recentDocuments && recentDocuments.length > itemsPerPage && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Página <span className="font-medium">{currentPage}</span> de{' '}
+              <span className="font-medium">{totalPages}</span>
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Próximo
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -176,8 +176,8 @@ export default function DashboardPage() {
               paginatedDocuments.map((document) => {
                 const isCertificate = document.type === 'certificate';
                 const accentClasses = isCertificate
-                  ? 'border-l-4 border-blue-500/80 bg-blue-50/60'
-                  : 'border-l-4 border-green-500/80 bg-white';
+                  ? 'border-l-[6px] border-l-blue-500'
+                  : 'border-l-[6px] border-l-green-500';
                 const badgeClasses = isCertificate
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-green-100 text-green-700';
@@ -196,7 +196,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={document.id}
-                    className={`p-3 rounded-md transition border border-gray-200 hover:bg-white ${accentClasses}`}
+                    className={`p-3 rounded-md transition border border-gray-200 bg-white hover:bg-gray-50 ${accentClasses}`}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -248,3 +248,13 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

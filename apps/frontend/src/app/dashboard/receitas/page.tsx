@@ -1,4 +1,3 @@
-﻿// EndereÃ§o: apps/frontend/src/app/dashboard/Receitas/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -103,18 +102,19 @@ export default function PrescriptionHistoryPage() {
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const allIdsOnPage = data?.data.map(cert => cert.id) ?? [];
+      const allIdsOnPage = data?.data.map((cert) => String(cert.id)) ?? [];
       setSelectedIds(allIdsOnPage);
     } else {
       setSelectedIds([]);
     }
   };
 
-  const handleSelectOne = (id: string, isChecked: boolean) => {
+  const handleSelectOne = (id: string | number, isChecked: boolean) => {
+    const normalizedId = String(id);
     if (isChecked) {
-      setSelectedIds(prev => [...prev, id]);
+      setSelectedIds((prev) => (prev.includes(normalizedId) ? prev : [...prev, normalizedId]));
     } else {
-      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== normalizedId));
     }
   };
   
@@ -135,8 +135,8 @@ export default function PrescriptionHistoryPage() {
     }
   };
 
-  const openSingleDeleteModal = (prescriptionId: string) => {
-    setPrescriptionToDelete(prescriptionId);
+  const openSingleDeleteModal = (prescriptionId: string | number) => {
+    setPrescriptionToDelete(String(prescriptionId));
     setSelectedIds([]);
     setIsDeleteModalOpen(true);
   };
@@ -146,7 +146,7 @@ export default function PrescriptionHistoryPage() {
       deleteMutation.mutate(prescriptionToDelete);
     } 
     else if (selectedIds.length > 0) {
-      batchDeleteMutation.mutate(selectedIds);
+      batchDeleteMutation.mutate(selectedIds.map(String));
     }
     closeDeleteModal();
   };
@@ -183,12 +183,14 @@ export default function PrescriptionHistoryPage() {
       );
     }
 
-    return data?.data.map((cert) => (
-      <tr key={cert.id} className={selectedIds.includes(cert.id) ? 'bg-blue-50' : ''}>
+    return data?.data.map((cert) => {
+      const certId = String(cert.id);
+      return (
+        <tr key={cert.id} className={selectedIds.includes(certId) ? 'bg-blue-50' : ''}>
         <td className="px-6 py-4">
           <input
             type="checkbox"
-            checked={selectedIds.includes(cert.id)}
+            checked={selectedIds.includes(certId)}
             onChange={(e) => handleSelectOne(cert.id, e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
@@ -220,7 +222,6 @@ export default function PrescriptionHistoryPage() {
           </a>
           <button
             onClick={() => openSingleDeleteModal(cert.id)}
-            // MODIFICAÃ‡ÃƒO: .isLoading alterado para .isPending
             disabled={deleteMutation.isPending}
             className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
             title="Excluir Receita"
@@ -229,16 +230,17 @@ export default function PrescriptionHistoryPage() {
             Excluir
           </button>
         </td>
-      </tr>
-    ));
+        </tr>
+      );
+    });
   };
 
 
   return (
     <div>
-      {/* O botÃ£o foi removido daqui */}
+      {/* O botão foi removido daqui */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">HistÃ³rico de Receitas</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Histórico de Receitas</h1>
       </div>
 
       <div className="mb-6">
@@ -258,7 +260,7 @@ export default function PrescriptionHistoryPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {/* O botÃ£o de exclusÃ£o em lote agora vive aqui, ao lado do checkbox */}
+              {/* O botão de exclusão em lote agora vive aqui, ao lado do checkbox */}
               <th className="px-6 py-3 text-left">
                 <div className="flex items-center gap-x-3">
                   <input
@@ -271,7 +273,6 @@ export default function PrescriptionHistoryPage() {
                     <button
                       onClick={openBatchDeleteModal}
                       className="p-1 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-50"
-                      // MODIFICAÃ‡ÃƒO: .isLoading alterado para .isPending
                       disabled={batchDeleteMutation.isPending}
                       title={`Excluir ${selectedIds.length} receita(s)`}
                     >
@@ -281,8 +282,8 @@ export default function PrescriptionHistoryPage() {
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de EmissÃ£o</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">AÃ§Ãµes</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Emissão</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -295,7 +296,7 @@ export default function PrescriptionHistoryPage() {
         <div className="mt-6 flex justify-between items-center">
             <div>
             <p className="text-sm text-gray-700">
-                PÃ¡gina <span className="font-medium">{data.page}</span> de <span className="font-medium">{data.totalPages}</span>
+                Página <span className="font-medium">{data.page}</span> de <span className="font-medium">{data.totalPages}</span>
             </p>
             </div>
             <div className="flex gap-2">
@@ -311,7 +312,7 @@ export default function PrescriptionHistoryPage() {
                 disabled={page === data.totalPages || isLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-                PrÃ³ximo
+                Próximo
             </button>
             </div>
         </div>
@@ -320,7 +321,7 @@ export default function PrescriptionHistoryPage() {
       <Modal
         isOpen={isPreviewModalOpen}
         onClose={handleClosePreview}
-        title="VisualizaÃ§Ã£o do Receita"
+        title="Visualização da Receita"
         maxWidth="max-w-4xl"
       >
         {previewPdfUrl ? (
@@ -340,7 +341,7 @@ export default function PrescriptionHistoryPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
-        title="Confirmar ExclusÃ£o"
+        title="Confirmar Exclusão"
         maxWidth="max-w-lg"
       >
         <div className="mt-2">
@@ -350,10 +351,10 @@ export default function PrescriptionHistoryPage() {
                 </div>
                 <div>
                     <p className="text-sm text-gray-700">
-                        VocÃª tem certeza que deseja excluir <strong>{prescriptionToDelete ? 1 : selectedIds.length} receita(s)</strong>?
+                        Você tem certeza que deseja excluir <strong>{prescriptionToDelete ? 1 : selectedIds.length} receita(s)</strong>?
                     </p>
                     <p className="mt-1 text-sm text-gray-500">
-                        Esta aÃ§Ã£o Ã© permanente e nÃ£o poderÃ¡ ser desfeita.
+                        Esta ação é permanente e não poderá ser desfeita.
                     </p>
                 </div>
             </div>
@@ -363,10 +364,8 @@ export default function PrescriptionHistoryPage() {
             type="button"
             className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
             onClick={handleConfirmDelete}
-            // MODIFICAÃ‡ÃƒO: .isLoading alterado para .isPending
             disabled={deleteMutation.isPending || batchDeleteMutation.isPending}
           >
-            {/* MODIFICAÃ‡ÃƒO: .isLoading alterado para .isPending */}
             {(deleteMutation.isPending || batchDeleteMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Excluir
           </button>

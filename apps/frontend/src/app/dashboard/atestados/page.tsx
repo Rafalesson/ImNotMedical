@@ -1,4 +1,3 @@
-// Endereço: apps/frontend/src/app/dashboard/atestados/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -103,18 +102,19 @@ export default function CertificateHistoryPage() {
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const allIdsOnPage = data?.data.map(cert => cert.id) ?? [];
+      const allIdsOnPage = data?.data.map((cert) => String(cert.id)) ?? [];
       setSelectedIds(allIdsOnPage);
     } else {
       setSelectedIds([]);
     }
   };
 
-  const handleSelectOne = (id: string, isChecked: boolean) => {
+  const handleSelectOne = (id: string | number, isChecked: boolean) => {
+    const normalizedId = String(id);
     if (isChecked) {
-      setSelectedIds(prev => [...prev, id]);
+      setSelectedIds((prev) => (prev.includes(normalizedId) ? prev : [...prev, normalizedId]));
     } else {
-      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== normalizedId));
     }
   };
   
@@ -135,8 +135,8 @@ export default function CertificateHistoryPage() {
     }
   };
 
-  const openSingleDeleteModal = (certificateId: string) => {
-    setCertificateToDelete(certificateId);
+  const openSingleDeleteModal = (certificateId: string | number) => {
+    setCertificateToDelete(String(certificateId));
     setSelectedIds([]);
     setIsDeleteModalOpen(true);
   };
@@ -146,7 +146,7 @@ export default function CertificateHistoryPage() {
       deleteMutation.mutate(certificateToDelete);
     } 
     else if (selectedIds.length > 0) {
-      batchDeleteMutation.mutate(selectedIds);
+      batchDeleteMutation.mutate(selectedIds.map(String));
     }
     closeDeleteModal();
   };
@@ -183,12 +183,14 @@ export default function CertificateHistoryPage() {
       );
     }
 
-    return data?.data.map((cert) => (
-      <tr key={cert.id} className={selectedIds.includes(cert.id) ? 'bg-blue-50' : ''}>
+    return data?.data.map((cert) => {
+      const certId = String(cert.id);
+      return (
+        <tr key={cert.id} className={selectedIds.includes(certId) ? 'bg-blue-50' : ''}>
         <td className="px-6 py-4">
           <input
             type="checkbox"
-            checked={selectedIds.includes(cert.id)}
+            checked={selectedIds.includes(certId)}
             onChange={(e) => handleSelectOne(cert.id, e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
@@ -218,9 +220,8 @@ export default function CertificateHistoryPage() {
             <Download className="mr-1 h-4 w-4" />
             Baixar
           </a>
-          <button
+         <button
             onClick={() => openSingleDeleteModal(cert.id)}
-            // MODIFICAÇÃO: .isLoading alterado para .isPending
             disabled={deleteMutation.isPending}
             className="text-red-600 hover:text-red-900 inline-flex items-center disabled:opacity-50"
             title="Excluir Atestado"
@@ -229,8 +230,9 @@ export default function CertificateHistoryPage() {
             Excluir
           </button>
         </td>
-      </tr>
-    ));
+        </tr>
+      );
+    });
   };
 
 
@@ -271,7 +273,6 @@ export default function CertificateHistoryPage() {
                     <button
                       onClick={openBatchDeleteModal}
                       className="p-1 text-red-600 rounded-full hover:bg-red-100 disabled:opacity-50"
-                      // MODIFICAÇÃO: .isLoading alterado para .isPending
                       disabled={batchDeleteMutation.isPending}
                       title={`Excluir ${selectedIds.length} atestado(s)`}
                     >
@@ -363,10 +364,8 @@ export default function CertificateHistoryPage() {
             type="button"
             className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
             onClick={handleConfirmDelete}
-            // MODIFICAÇÃO: .isLoading alterado para .isPending
             disabled={deleteMutation.isPending || batchDeleteMutation.isPending}
           >
-            {/* MODIFICAÇÃO: .isLoading alterado para .isPending */}
             {(deleteMutation.isPending || batchDeleteMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Excluir
           </button>

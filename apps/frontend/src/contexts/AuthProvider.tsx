@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       api.get('/auth/profile')
         .then(response => {
-          console.log('[AuthProvider - useEffect] Perfil recebido do backend:', response.data);
           setUser(response.data);
         })
         .catch(() => {
@@ -93,8 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
       const profileResponse = await api.get('/auth/profile');
-      
-      console.log('[AuthProvider - signIn] Perfil recebido do backend:', profileResponse.data);
       
       const loggedUser = profileResponse.data;
       setUser(loggedUser);

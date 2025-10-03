@@ -43,6 +43,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Usuario nao encontrado.');
     }
 
-    return user;
+    const {
+      password,
+      passwordResetToken,
+      passwordResetExpires,
+      ...safeUser
+    } = user;
+
+    return safeUser;
   }
 }

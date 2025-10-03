@@ -61,16 +61,24 @@ export default function ValidatePage({ params }: { params: { codigo: string } })
         <p className="text-center text-gray-500 mb-6">
           Insira o código único do documento para verificar sua autenticidade.
         </p>
-        <form onSubmit={handleValidate} className="flex items-center space-x-2">
+        <form onSubmit={handleValidate} className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="flex-grow rounded-md border border-gray-300 p-3 text-gray-900 focus:ring-2 focus:ring-blue-500"
+            className="flex-grow rounded-md border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500"
             placeholder="Digite o código aqui..."
           />
-          <button type="submit" disabled={isLoading} className="rounded-md bg-blue-600 p-3 text-white transition hover:bg-blue-700 disabled:bg-blue-300">
-            {isLoading ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Search />}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex items-center justify-center whitespace-nowrap rounded-md bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:bg-blue-300 sm:h-full"
+          >
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              'Validar Atestado'
+            )}
           </button>
         </form>
 

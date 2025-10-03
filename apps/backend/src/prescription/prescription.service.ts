@@ -5,7 +5,7 @@ import { TemplatesService } from 'src/templates/templates.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { PrescriptionData } from './prescription.types';
-import { calculateAge } from 'src/utils';
+import { calculateAge, buildDocumentFileBase } from 'src/utils';
 import { Prisma, Sex } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import * as path from 'path';
@@ -211,12 +211,17 @@ export class PrescriptionService {
       createPrescriptionDto.templateId,
     );
     const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
+    const patientFileBase = buildDocumentFileBase(
+      'receituario_medico',
+      data.patientName,
+      prescriptionRecord.code ?? prescriptionRecord.id,
+    );
 
     if (this.cloudinaryService.isEnabled()) {
       try {
         const uploadResult = await this.cloudinaryService.uploadPrescriptionPdf(
           pdfBuffer,
-          prescriptionRecord.id.toString(),
+          patientFileBase,
         );
 
         return this.prisma.medicalPrescription.update({
@@ -236,7 +241,7 @@ export class PrescriptionService {
       fs.mkdirSync(pdfDir, { recursive: true });
     }
 
-    const pdfFileName = `${prescriptionRecord.id}.pdf`;
+    const pdfFileName = `${patientFileBase}.pdf`;
     const pdfPath = path.join(pdfDir, pdfFileName);
     fs.writeFileSync(pdfPath, pdfBuffer);
 

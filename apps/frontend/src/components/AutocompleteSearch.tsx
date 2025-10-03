@@ -96,7 +96,7 @@ export function AutocompleteSearch<T extends Option>({
           value={query}
           onChange={handleInputChange}
           onFocus={handleFocus}
-          className="w-full rounded-md border border-gray-300 p-3 pl-10 text-gray-900"
+          className="w-full rounded-md border border-gray-300 p-3 pl-10 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
           placeholder={placeholder}
           autoComplete="off"
         />

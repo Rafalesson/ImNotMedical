@@ -66,7 +66,7 @@ export default function ValidatePage({ params }: { params: { codigo: string } })
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="flex-grow rounded-md border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500"
+            className="flex-grow rounded-md border border-gray-300 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
             placeholder="Digite o código aqui..."
           />
           <button

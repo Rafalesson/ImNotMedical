@@ -5,7 +5,7 @@ import { TemplatesService } from 'src/templates/templates.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { CertificateData } from './certificate.types';
-import { calculateAge, numberToWords } from 'src/utils';
+import { calculateAge, numberToWords, buildDocumentFileBase } from 'src/utils';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Prisma, Sex } from '@prisma/client';
@@ -168,13 +168,18 @@ export class CertificateService {
       createCertificateDto.templateId,
     );
     const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
+    const patientFileBase = buildDocumentFileBase(
+      'atestado_medico',
+      data.patientName,
+      certificateRecord.code ?? certificateRecord.id,
+    );
 
     // Armazena o PDF gerado na Cloudinary quando as credenciais estao configuradas.
     if (this.cloudinaryService.isEnabled()) {
       try {
         const uploadResult = await this.cloudinaryService.uploadCertificatePdf(
           pdfBuffer,
-          certificateRecord.id.toString(),
+          patientFileBase,
         );
 
         return this.prisma.medicalCertificate.update({
@@ -192,7 +197,7 @@ export class CertificateService {
       fs.mkdirSync(pdfDir, { recursive: true });
     }
 
-    const pdfFileName = `${certificateRecord.id}.pdf`;
+    const pdfFileName = `${patientFileBase}.pdf`;
     const pdfPath = path.join(pdfDir, pdfFileName);
     fs.writeFileSync(pdfPath, pdfBuffer);
 

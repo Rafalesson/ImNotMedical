@@ -58,6 +58,43 @@ export class PrescriptionService {
   }
 
   private formatIssueDateTime(date: Date): string {
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      };
+
+      const formatter = new Intl.DateTimeFormat('pt-BR', options);
+      const parts = formatter.formatToParts(date);
+      const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+        parts.find((part) => part.type === type)?.value ?? '';
+
+      const day = getPart('day');
+      const month = getPart('month');
+      const year = getPart('year');
+      const hour = getPart('hour');
+      const minute = getPart('minute');
+      const second = getPart('second');
+
+      if (day && month && year && hour && minute && second) {
+        return `${day}/${month}/${year} - ${hour}:${minute}:${second} (GMT-03)`;
+      }
+    } catch (error) {
+      // Se ocorrer algum problema com Intl, cai no fallback abaixo
+      this.logger.warn(
+        `Falha ao formatar data no fuso de São Paulo: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+
+    // Fallback simples caso Intl falhe por algum motivo inesperado
     const datePart = date.toLocaleDateString('pt-BR');
     const timePart = date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
@@ -65,17 +102,7 @@ export class PrescriptionService {
       second: '2-digit',
     });
 
-    const offsetMinutes = -date.getTimezoneOffset();
-    const sign = offsetMinutes >= 0 ? '+' : '-';
-    const absMinutes = Math.abs(offsetMinutes);
-    const hours = Math.floor(absMinutes / 60)
-      .toString()
-      .padStart(2, '0');
-    const minutes = (absMinutes % 60).toString().padStart(2, '0');
-    const offset =
-      minutes === '00' ? `${sign}${hours}` : `${sign}${hours}:${minutes}`;
-
-    return `${datePart} - ${timePart} (GMT${offset})`;
+    return `${datePart} - ${timePart} (GMT-03)`;
   }
 
   private async prepareDataForPdf(

@@ -41,7 +41,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-white">
       <div
         className="hidden lg:block w-1/2 bg-cover bg-center"
-        style={{ backgroundImage: "url(/login_img.svg)" }}
+        style={{ backgroundImage: "url(/assets/login_img.svg)" }}
       />
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">

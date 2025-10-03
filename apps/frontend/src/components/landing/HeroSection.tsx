@@ -2,12 +2,11 @@
 
 export function HeroSection() {
   return (
-    // MUDANÇA: trocamos h-screen por h-[100dvh] para compatibilidade com mobile
     <section className="relative bg-gray-900 flex h-[100dvh] items-center justify-center text-white scroll-snap-align-start">
       
       <div className="absolute top-0 left-0 h-full w-full">
         <video
-          src="/hero_video.mp4"
+          src="/assets/home_zello_video.mp4"
           autoPlay loop muted playsInline
           className="h-full w-full object-cover"
         />

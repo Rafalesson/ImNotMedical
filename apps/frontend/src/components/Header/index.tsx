@@ -1,4 +1,4 @@
-// Endereço: apps/frontend/src/components/Header/index.tsx (versão com botão contextual)
+// Endereço: apps/frontend/src/components/Header/index.tsx 
 'use client';
 
 import Link from 'next/link';

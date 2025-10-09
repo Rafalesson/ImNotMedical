@@ -30,6 +30,8 @@ export default function DoctorRegistrationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
   const [states, setStates] = useState<IBGE_UF_Response[]>([]);
@@ -41,6 +43,54 @@ export default function DoctorRegistrationPage() {
         setStates(response.data);
       });
   }, []);
+
+  // helpers (shared behaviour with patient form)
+  const sanitize = (value: string) => value.replace(/<[^>]*>/g, '').trim();
+  const onlyDigits = (value: string) => value.replace(/\D/g, '');
+  const formatPhone = (value: string) => {
+    const d = onlyDigits(value).slice(0, 11);
+    if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '');
+    return d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+  const validateEmail = (email: string) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(email.trim());
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const name = e.target.name;
+    setTouched((t) => ({ ...t, [name]: true }));
+    const fieldError = validateField(name, (formData as any)[name] || '');
+    setFieldErrors((s) => ({ ...s, [name]: fieldError }));
+  };
+
+  const validateField = (name: string, value: string) => {
+    if (name === 'email') {
+      if (!value) return 'E-mail é obrigatório.';
+      if (!validateEmail(value)) return 'Formato de e-mail inválido.';
+      return null;
+    }
+    if (name === 'phone') {
+      const raw = onlyDigits(value);
+      if (!raw) return null; // optional
+      if (raw.length > 11) return 'Telefone inválido. Máx 11 dígitos.';
+      return null;
+    }
+    if (name === 'password') {
+      if (!value) return 'Senha é obrigatória.';
+      if (value.length < 8) return 'Senha deve ter ao menos 8 caracteres.';
+      return null;
+    }
+    if (name === 'passwordConfirmation') {
+      if (!value) return 'Confirmação de senha é obrigatória.';
+      if (value !== formData.password) return 'As senhas não coincidem.';
+      return null;
+    }
+    if (name === 'name') {
+      if (!value) return 'Nome é obrigatório.';
+      if (value.length > 120) return 'Nome muito longo.';
+      if (!/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/.test(value)) return 'Nome inválido. Use apenas letras e espaços.';
+      return null;
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (formData.state) {
@@ -74,11 +124,25 @@ export default function DoctorRegistrationPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
+    let value = (e.target as HTMLInputElement).value;
+
+    if (name === 'phone') {
+      value = formatPhone(value);
+    }
+
+    if (name === 'name') {
+      const withoutTags = value.replace(/<[^>]*>/g, '');
+      value = withoutTags.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' \-]/g, '').replace(/\s{2,}/g, ' ').slice(0, 120);
+    }
+
     setFormData({ ...formData, [name]: value });
     if (name === 'zipCode' && value.replace(/\D/g, '').length === 8) {
       handleCepLookup(value);
     }
+
+    const fieldError = validateField(name, value);
+    setFieldErrors((s) => ({ ...s, [name]: fieldError }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,18 +181,44 @@ export default function DoctorRegistrationPage() {
           <fieldset className="space-y-4">
             <legend className="text-lg font-semibold text-blue-500 border-b pb-2 mb-4">Dados da Conta</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-              <div><label className={labelStyles}>Email</label><input type="email" name="email" value={formData.email} onChange={handleChange} required className={inputStyles}/></div>
-              <div><label className={labelStyles}>Telefone</label><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={inputStyles}/></div>
-              <div><label className={labelStyles}>Senha</label><input type="password" name="password" value={formData.password} onChange={handleChange} required className={inputStyles}/></div>
-              <div><label className={labelStyles}>Confirmar Senha</label><input type="password" name="passwordConfirmation" value={formData.passwordConfirmation} onChange={handleChange} required className={inputStyles}/></div>
+              <div>
+                <label className={labelStyles}>Email</label>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                {touched.email && fieldErrors.email && <p className="text-sm text-red-600 mt-1">{fieldErrors.email}</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>Telefone</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} onBlur={handleBlur} className={inputStyles}/>
+                {touched.phone && fieldErrors.phone && <p className="text-sm text-red-600 mt-1">{fieldErrors.phone}</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>Senha</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                {touched.password && fieldErrors.password && <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>Confirmar Senha</label>
+                <input type="password" name="passwordConfirmation" value={formData.passwordConfirmation} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                {touched.passwordConfirmation && fieldErrors.passwordConfirmation && <p className="text-sm text-red-600 mt-1">{fieldErrors.passwordConfirmation}</p>}
+              </div>
             </div>
           </fieldset>
           <fieldset className="space-y-4">
             <legend className="text-lg font-semibold text-blue-500 border-b pb-2 mb-4">Perfil Profissional</legend>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-               <div><label className={labelStyles}>Nome Completo</label><input type="text" name="name" value={formData.name} onChange={handleChange} required className={inputStyles}/></div>
-               <div><label className={labelStyles}>CRM</label><input type="text" name="crm" value={formData.crm} onChange={handleChange} required className={inputStyles}/></div>
-               <div className="md:col-span-2"><label className={labelStyles}>Especialidade</label><input type="text" name="specialty" value={formData.specialty} onChange={handleChange} className={inputStyles}/></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+              <div className="md:col-span-3">
+                <label className={labelStyles}>Nome Completo</label>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                {touched.name && fieldErrors.name && <p className="text-sm text-red-600 mt-1">{fieldErrors.name}</p>}
+              </div>
+              <div className="md:col-span-1">
+                <label className={labelStyles}>CRM</label>
+                <input type="text" name="crm" value={formData.crm} onChange={handleChange} required className={inputStyles}/>
+              </div>
+              <div className="md:col-span-2">
+                <label className={labelStyles}>Especialidade</label>
+                <input type="text" name="specialty" value={formData.specialty} onChange={handleChange} className={inputStyles}/>
+              </div>
             </div>
           </fieldset>
           

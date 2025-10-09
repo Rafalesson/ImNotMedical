@@ -1,42 +1,71 @@
-// Endereço: apps/frontend/src/components/landing/FeaturesSection.tsx
+﻿'use client';
 
+import { useRef, type ComponentType } from 'react';
 import { ShieldCheck, Rocket, Users } from 'lucide-react';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
-const features = [ 
-  { name: 'Validação Segura', description: 'Garanta a autenticidade de cada documento com nossa tecnologia anti-fraude, protegendo médicos e pacientes.', icon: ShieldCheck, },
-  { name: 'Emissão Rápida e Intuitiva', description: 'Crie e envie atestados e prescrições em segundos, direto da plataforma, com uma interface pensada para você.', icon: Rocket, },
-  { name: 'Conexão Direta', description: 'Uma ponte segura entre você e seu paciente. Facilite a comunicação, o envio de documentos e o acompanhamento.', icon: Users, },
+type Feature = {
+  name: string;
+  description: string;
+  icon: ComponentType<{ className?: string }>;
+};
+
+const features: Feature[] = [
+  {
+    name: 'Validação Segura',
+    description:
+      'Tecnologia antifraude que valida cada documento emitido, garantindo confiança total para médicos e pacientes.',
+    icon: ShieldCheck,
+  },
+  {
+    name: 'Emissão Rápida e Intuitiva',
+    description:
+      'Atestados e prescrições criados em poucos cliques, com layouts profissionais e envio imediato para o paciente.',
+    icon: Rocket,
+  },
+  {
+    name: 'Conexão Direta',
+    description:
+      'Comunicação descomplicada entre você e seu paciente, com histórico compartilhado e acompanhamento contínuo.',
+    icon: Users,
+  },
 ];
 
 export function FeaturesSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useScrollReveal(sectionRef);
+
   return (
-    // MUDANÇA: trocamos h-screen por h-[100dvh]
-    <section className="relative bg-white h-[100dvh] scroll-snap-align-start flex flex-col justify-center">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-24 overflow-y-auto">
-        {/* ... conteúdo interno ... */}
-        <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-blue-600">Sempre à Frente</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Uma plataforma completa para o cuidado digital
-          </p>
-          <p className="mt-4 text-base leading-7 text-gray-600 lg:text-lg lg:leading-8">
-            O Zello foi desenhado para otimizar a rotina de médicos e trazer segurança para pacientes, modernizando cada etapa da consulta.
+    <section ref={sectionRef} id="features" className="bg-white">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col justify-center px-6 py-24 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Por que Zello?</span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Clareza e segurança em cada etapa do cuidado digital
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-600">
+            Mais do que uma plataforma, o Zello conecta pessoas com dados confiáveis e processos fluidos.
           </p>
         </div>
-        <div className="mx-auto mt-12 max-w-2xl sm:mt-16 lg:mt-20 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none md:grid-cols-2 lg:grid-cols-3 lg:gap-y-16">
-            {features.map((feature) => (
-              <div key={feature.name} className="relative pl-16">
-                <dt className="text-base font-semibold leading-7 text-gray-900">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                    <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  {feature.name}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-600">{feature.description}</dd>
+
+        <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => {
+            const baseBackground = index % 2 === 0 ? 'bg-white' : 'bg-[#f9fafb]';
+
+            return (
+              <div
+                key={feature.name}
+                data-reveal
+                className={`group relative flex flex-col rounded-3xl ${baseBackground} p-8 shadow-sm ring-1 ring-slate-100 transition-all duration-200 hover:-translate-y-2 hover:shadow-xl hover:ring-blue-100`}
+              >
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-200 group-hover:bg-blue-600 group-hover:text-white">
+                  <feature.icon className="h-10 w-10" aria-hidden="true" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900">{feature.name}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{feature.description}</p>
               </div>
-            ))}
-          </dl>
+            );
+          })}
         </div>
       </div>
     </section>

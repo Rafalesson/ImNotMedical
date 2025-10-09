@@ -422,10 +422,10 @@ export default function PatientRegistrationPage() {
   return (
     <PublicLayout>
       <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg mb-10">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Crie sua Conta de Paciente</h1>
+  <h1 className="text-2xl font-bold text-gray-800 mb-6">Cadastro de paciente</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">Dados da Conta</legend>
+            <legend className="text-lg font-semibold text-blue-500 border-b pb-2 mb-4">Dados da Conta</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="email" className={labelStyles}>Email</label>
@@ -453,7 +453,7 @@ export default function PatientRegistrationPage() {
             </div>
           </fieldset>
           <fieldset className="space-y-4">
-            <legend className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">Dados Pessoais</legend>
+            <legend className="text-lg font-semibold text-blue-500 border-b pb-2 mb-4">Dados Pessoais</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label htmlFor="name" className={labelStyles}>Nome Completo</label>
@@ -463,7 +463,7 @@ export default function PatientRegistrationPage() {
 
               <div>
                 <label htmlFor="cpf" className={labelStyles}>CPF</label>
-                <input id="cpf" type="text" name="cpf" value={formData.cpf} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                <input id="cpf" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={14} name="cpf" value={formData.cpf} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
                 {touched.cpf && fieldErrors.cpf && <p className="text-sm text-red-600 mt-1">{fieldErrors.cpf}</p>}
               </div>
 

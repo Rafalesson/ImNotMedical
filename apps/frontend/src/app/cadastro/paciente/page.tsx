@@ -463,7 +463,7 @@ export default function PatientRegistrationPage() {
 
               <div>
                 <label htmlFor="cpf" className={labelStyles}>CPF</label>
-                <input id="cpf" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={14} name="cpf" value={formData.cpf} onChange={handleChange} onBlur={handleBlur} required className={inputStyles}/>
+                <input id="cpf" type="text" inputMode="numeric" maxLength={14} name="cpf" value={formData.cpf} onChange={handleChange} onBlur={handleBlur} required className={inputStyles} placeholder="000.000.000-00"/>
                 {touched.cpf && fieldErrors.cpf && <p className="text-sm text-red-600 mt-1">{fieldErrors.cpf}</p>}
               </div>
 

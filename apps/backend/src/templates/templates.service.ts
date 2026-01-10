@@ -173,7 +173,7 @@ const allTemplates = {
               a partir de <strong>{{startDate}}</strong>, por motivos de saúde.
             </p>
             <div class="details">
-              <div class="detailItem"><span>Resposável</span><p>Priscila Alessandra Silva dos Santos</p></div>
+              <div class="detailItem"><span>Resposável pelo paciente</span><p>Priscila Alessandra Silva dos Santos</p></div>
               <div class="detailItem"><span>Finalidade</span><p>{{purpose}}</p></div>
               <div class="detailItem"><span>CID-10</span><p>{{cidCode}} - {{cidDescription}}</p></div>
             </div>

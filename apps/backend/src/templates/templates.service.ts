@@ -173,6 +173,7 @@ const allTemplates = {
               a partir de <strong>{{startDate}}</strong>, por motivos de saúde.
             </p>
             <div class="details">
+              <div class="detailItem"><span>Resposável</span><p>Priscila Alessandra Silva dos Santos</p></div>
               <div class="detailItem"><span>Finalidade</span><p>{{purpose}}</p></div>
               <div class="detailItem"><span>CID-10</span><p>{{cidCode}} - {{cidDescription}}</p></div>
             </div>
@@ -242,14 +243,14 @@ const allTemplates = {
               <strong>{{patientCPF}}</strong>, encontra-se sob meus cuidados 
               profissionais, sendo-lhe necessário o afastamento de suas atividades 
               habituais por um período de <strong>{{durationInDays}} 
-              ({{durationInWords}})</strong> dia(s), a contar de <strong>10/01/2026</strong>.
+              ({{durationInWords}})</strong> dia(s), a contar de <strong>{{startDate}}</strong>.
             </p>
             <p class="details-line"><strong>Finalidade:</strong> {{purpose}}</p>
             <p class="details-line"><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>    
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em 10/01/2026 às 10:29:17 </p>
+              <p>Emitido em {{issueDateTime}}</p>
               <p id="footer_p2">
                 Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />

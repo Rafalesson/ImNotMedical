@@ -54,6 +54,10 @@ const sharedAssets = {
     'logo_zello_new.png',
     'image/png',
   ),
+  signatureImageFile: loadAssetAsDataUrl(
+    'assinatura_img.jpeg',
+    'image/jpeg',
+  ),
 };
 
 // Objeto que contém o HTML e o CSS
@@ -213,7 +217,7 @@ const allTemplates = {
       </html>
     `,
     css: `
-      .container{font-family:'Inter',sans-serif;color:#111827;background-color:white;padding:2rem}.header{padding-bottom:1rem;border-bottom:2px solid #d1d5db;margin-bottom:1.5rem}.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.cfm-header{width:165px;height:auto}.doctor-info{text-align:right;display:flex;flex-direction:column;gap:6px}.doctor-name{font-size:1.2rem;font-weight:600;margin:0;color:#111827}.doctor-spec,.doctor-crm{font-size:.9rem;color:#4b5563;margin:0}.main{flex-grow:1;padding-top:1.5rem}.mainTitle{font-size:1.875rem;font-weight:700;text-align:center;margin-bottom:2rem;color:#1f2937}.mainText{font-size:1rem;line-height:1.75;text-align:justify;margin-bottom:2rem}.details{background-color:#f9fafb;border-radius:8px;padding:1rem}.detailItem{padding:.75rem 0;border-bottom:1px solid #e5e7eb}.detailItem:last-child{border-bottom:none}.detailItem span{font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:4px}.detailItem p{margin:0;font-size:1rem}.footer{text-align:center;font-size:9pt;color:#666;margin-top:auto;padding-top:15mm}#footer_p2{border-top:1px solid #ccc;padding-top:10px;margin-top:10px}.container_img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-top:1rem}#icp_img{width:180px;height:120px}.signature-container{display:flex;align-items:center;justify-content:center;gap:20px}.qr-code-img{width:100px;height:100px}.validation-url{color:inherit;text-decoration:none}
+      .container{font-family:'Inter',sans-serif;color:#111827;background-color:white;padding:2rem}.header{padding-bottom:1rem;border-bottom:2px solid #d1d5db;margin-bottom:1.5rem}.header-top{display:flex;justify-content:space-between;align-items:center;gap:16px}.cfm-header{width:150px;height:auto;max-height:80px;object-fit:contain}.doctor-info{text-align:right;display:flex;flex-direction:column;gap:6px}.doctor-name{font-size:1.2rem;font-weight:600;margin:0;color:#111827}.doctor-spec,.doctor-crm{font-size:.9rem;color:#4b5563;margin:0}.main{flex-grow:1;padding-top:1.5rem}.mainTitle{font-size:1.875rem;font-weight:700;text-align:center;margin-bottom:2rem;color:#1f2937}.mainText{font-size:1rem;line-height:1.75;text-align:justify;margin-bottom:2rem}.details{background-color:#f9fafb;border-radius:8px;padding:1rem}.detailItem{padding:.75rem 0;border-bottom:1px solid #e5e7eb}.detailItem:last-child{border-bottom:none}.detailItem span{font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;display:block;margin-bottom:4px}.detailItem p{margin:0;font-size:1rem}.footer{text-align:center;font-size:9pt;color:#666;margin-top:auto;padding-top:15mm}#footer_p2{border-top:1px solid #ccc;padding-top:10px;margin-top:10px}.container_img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-top:1rem}#icp_img{width:180px;height:120px}.signature-container{display:flex;align-items:center;justify-content:center;gap:20px}.qr-code-img{width:100px;height:100px}.validation-url{color:inherit;text-decoration:none}
     `,
   },
 
@@ -453,7 +457,7 @@ export class TemplatesService {
 
     const { html, css } = template;
 
-    const signatureJpeg = sharedAssets.signatureImage;
+    const signatureJpeg = sharedAssets.signatureImageFile;
 
     // Garantir que o horário exibido esteja no fuso de Brasília (America/Sao_Paulo)
     const formattedIssueDateTime = this.formatToSaoPaulo(
@@ -533,7 +537,7 @@ export class TemplatesService {
     const validationUrl = `${normalizedBaseUrl}/receitas/validar/${prescriptionCode}`;
     const qrCodeDataUrl = await QRCode.toDataURL(validationUrl);
 
-    const signatureJpeg = sharedAssets.signatureImage;
+    const signatureJpeg = sharedAssets.signatureImageFile;
     const cfmHeaderImage = sharedAssets.cfmHeaderImage;
     const items = data.items ?? [];
     const itemsHtml =

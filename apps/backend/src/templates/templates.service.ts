@@ -179,7 +179,7 @@ const allTemplates = {
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em {{issueDateTime}}</p>
+              <p>Emitido em 01/02/2026 às 21:47</p>
               <p id="footer_p2">
                 Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />

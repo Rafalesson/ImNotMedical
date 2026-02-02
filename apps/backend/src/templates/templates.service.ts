@@ -50,6 +50,10 @@ const sharedAssets = {
     'image/png',
     cfmHeaderFallbackBase64,
   ),
+  modernHeaderImage: loadAssetAsDataUrl(
+    'logo_zello_new.png',
+    'image/png',
+  ),
 };
 
 // Objeto que contém o HTML e o CSS
@@ -155,8 +159,8 @@ const allTemplates = {
           <header class="header">
             <div class="header-top">
               <img
-                src="{{cfmHeaderImage}}"
-                alt="Logotipo do Conselho Federal de Medicina"
+                src="{{modernHeaderImage}}"
+                alt="Logo Zello"
                 class="cfm-header"
               />
               <div class="doctor-info">
@@ -481,6 +485,7 @@ export class TemplatesService {
       .replace('{{signatureImage}}', signatureJpeg)
       .replace('{{qrCodeDataUrl}}', qrCodeDataUrl)
       .replace('{{cfmHeaderImage}}', sharedAssets.cfmHeaderImage)
+      .replace('{{modernHeaderImage}}', sharedAssets.modernHeaderImage)
       .replace('{{medicineIcon}}', sharedAssets.medicineIcon);
 
     return populatedHtml.replace('</head>', `<style>${css}</style></head>`);

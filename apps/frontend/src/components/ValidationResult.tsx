@@ -147,7 +147,7 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
           </p>
         )}
         <p>
-          <strong>Data de Emissão:</strong> 01/02/2026 - 21:47:18 (GMT-03) {issuedAtLabel}
+          <strong>Data de Emissão:</strong> 01/02/2026 - 21:47:18 (GMT-03) 
         </p>
       </div>
 

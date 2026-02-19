@@ -1,6 +1,6 @@
 ﻿// src/components/ValidationResult.tsx
-'use client';
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+"use client";
+import { CheckCircle, AlertTriangle } from "lucide-react";
 
 interface ValidationResultContent {
   patientName?: string | null;
@@ -23,33 +23,36 @@ const formatIssuedAt = (value: string): string => {
       return value;
     }
 
-    const formatter = new Intl.DateTimeFormat('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    const formatter = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
       hour12: false,
     });
 
     const parts = formatter.formatToParts(date);
     const get = (type: Intl.DateTimeFormatPartTypes) =>
-      parts.find((part) => part.type === type)?.value ?? '';
+      parts.find((part) => part.type === type)?.value ?? "";
 
-    const day = get('day');
-    const month = get('month');
-    const year = get('year');
-    const hour = get('hour');
-    const minute = get('minute');
-    const second = get('second');
+    const day = get("day");
+    const month = get("month");
+    const year = get("year");
+    const hour = get("hour");
+    const minute = get("minute");
+    const second = get("second");
 
     if (day && month && year && hour && minute && second) {
       return `${day}/${month}/${year} - ${hour}:${minute}:${second} (GMT-03)`;
     }
 
-    const fallback = formatter.format(date).replace(', ', ' - ').replace(' ', ' - ');
+    const fallback = formatter
+      .format(date)
+      .replace(", ", " - ")
+      .replace(" ", " - ");
     return `${fallback} (GMT-03)`;
   } catch {
     return value;
@@ -80,7 +83,8 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
     }
 
     const baseEnv = process.env.NEXT_PUBLIC_API_URL?.trim();
-    const runtimeBase = typeof window !== 'undefined' ? window.location.origin : '';
+    const runtimeBase =
+      typeof window !== "undefined" ? window.location.origin : "";
 
     const buildBaseFromRuntime = (): string | null => {
       if (!runtimeBase) {
@@ -89,16 +93,17 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
 
       try {
         const parsed = new URL(runtimeBase);
-        if (parsed.hostname === 'localhost') {
-          parsed.port = parsed.port && parsed.port !== '' ? parsed.port : '3000';
-          if (parsed.port === '3000' || parsed.port === '3001') {
-            parsed.port = '3333';
+        if (parsed.hostname === "localhost") {
+          parsed.port =
+            parsed.port && parsed.port !== "" ? parsed.port : "3000";
+          if (parsed.port === "3000" || parsed.port === "3001") {
+            parsed.port = "3333";
           }
           return parsed.origin;
         }
         return parsed.origin;
       } catch {
-        return runtimeBase.replace(/\/+$/, '');
+        return runtimeBase.replace(/\/+$/, "");
       }
     };
 
@@ -109,51 +114,57 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
 
       try {
         const parsed = new URL(baseEnv);
-        if (parsed.hostname === 'localhost' && (!parsed.port || parsed.port === '3000')) {
-          parsed.port = '3333';
+        if (
+          parsed.hostname === "localhost" &&
+          (!parsed.port || parsed.port === "3000")
+        ) {
+          parsed.port = "3333";
         }
         return parsed.origin;
       } catch {
-        return baseEnv.replace(/\/+$/, '');
+        return baseEnv.replace(/\/+$/, "");
       }
     };
 
     const base =
-      buildBaseFromEnv() ?? buildBaseFromRuntime() ?? 'http://localhost:3333';
+      buildBaseFromEnv() ?? buildBaseFromRuntime() ?? "http://localhost:3333";
 
-    const normalized = url.startsWith('/') ? url : `/${url}`;
+    const normalized = url.startsWith("/") ? url : `/${url}`;
     return `${base}${normalized}`;
   };
 
   const pdfSrc = resolvePdfUrl(result.pdfUrl);
-  const patientName = result.patientName?.trim() || 'Não informado';
-  const doctorName = result.doctorName?.trim() || 'Não informado';
+  const patientName = result.patientName?.trim() || "Não informado";
+  const doctorName = result.doctorName?.trim() || "Não informado";
   const doctorCrm = result.doctorCrm?.trim();
-  const issuedAtLabel = result.issuedAt ? formatIssuedAt(result.issuedAt) : 'Não informado';
+  const issuedAtLabel = result.issuedAt
+    ? formatIssuedAt(result.issuedAt)
+    : "Não informado";
 
   return (
     <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center w-full">
       <CheckCircle className="mx-auto mb-2 h-10 w-10 text-green-600" />
       <h2 className="text-lg font-bold text-green-900">Documento Válido!</h2>
       <div className="mt-4 text-left text-sm text-gray-700 space-y-1">
-        <p><strong>Emitido para:</strong> {patientName}</p>
+        <p>
+          <strong>Emitido para:</strong> {patientName}
+        </p>
         <p>
           <strong>Médico Responsável:</strong> {doctorName}
-          {doctorCrm ? ` (CRM: ${doctorCrm})` : ''}
+          {doctorCrm ? ` (CRM: ${doctorCrm})` : ""}
         </p>
-        {typeof result.durationInDays === 'number' && (
+        {typeof result.durationInDays === "number" && (
           <p>
             <strong>Dias de afastamento:</strong> {result.durationInDays}
           </p>
         )}
-        <p>
-          <strong>Data de Emissão:</strong> {issuedAtLabel}
-        </p>
       </div>
 
       {pdfSrc ? (
         <div className="mt-6 text-left">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">Receita original</h3>
+          <h3 className="mb-3 text-sm font-semibold text-gray-700">
+            Receita original
+          </h3>
           <div className="h-[640px] w-full overflow-hidden rounded-md border border-gray-200 shadow-sm bg-white">
             <iframe
               title="Receita original"
@@ -173,7 +184,9 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
           </div>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-gray-600">Arquivo da receita não disponível para visualização.</p>
+        <p className="mt-4 text-sm text-gray-600">
+          Arquivo da receita não disponível para visualização.
+        </p>
       )}
     </div>
   );

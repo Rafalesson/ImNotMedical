@@ -243,6 +243,34 @@ npm run start:dev
 
 ---
 
+## ☁️ Deploy no Render (PostgreSQL)
+
+Se o log mostrar:
+
+```
+PrismaClientInitializationError: Error querying the database: FATAL: Tenant or user not found
+```
+
+o problema é quase sempre a `DATABASE_URL` inválida no ambiente do Render.
+
+### Checklist rápido no Render
+
+1. **Service → Environment**: confirme que existe `DATABASE_URL` (exatamente com esse nome).
+2. **Formato correto**:
+  ```
+  postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require
+  ```
+3. **Senha com caracteres especiais** (`#`, `@`, `%`, `/`, `:`): aplique URL encode.
+4. **Banco externo (Neon/Supabase/Railway, etc.)**: use a URL de conexão de aplicação/externa fornecida pelo provedor.
+5. **Após alterar variável**: faça um novo deploy manual para aplicar.
+
+### Exemplo de senha codificada
+
+- Senha real: `minha@senha#123`
+- Senha na URL: `minha%40senha%23123`
+
+---
+
 ## 🐛 Troubleshooting
 
 ### "JWT_SECRET não configurado"

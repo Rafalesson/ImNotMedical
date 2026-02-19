@@ -30,6 +30,32 @@ function normalizeOrigin(origin?: string) {
   return origin.endsWith('/') ? origin.slice(0, -1) : origin;
 }
 
+function printPrismaStartupHint(error: unknown) {
+  if (!(error instanceof Error)) {
+    return;
+  }
+
+  const text = `${error.name}: ${error.message}`;
+  const isPrismaInitError = text.includes('PrismaClientInitializationError');
+  if (!isPrismaInitError) {
+    return;
+  }
+
+  const hasTenantOrUserError = /tenant or user not found/i.test(text);
+  if (!hasTenantOrUserError) {
+    return;
+  }
+
+  console.error(
+    [
+      '[Startup] Falha ao conectar no PostgreSQL.',
+      '[Startup] No Render, revise a variável DATABASE_URL (usuário/senha/host/db).',
+      '[Startup] Exemplo esperado: postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require',
+      '[Startup] Se a senha tiver caracteres especiais (#, @, %, /, :), faça URL encode.',
+    ].join('\n'),
+  );
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -115,4 +141,7 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`Server is listening on port ${port}`);
 }
-void bootstrap();
+void bootstrap().catch((error: unknown) => {
+  printPrismaStartupHint(error);
+  throw error;
+});

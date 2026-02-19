@@ -7,7 +7,7 @@ interface ValidationResultContent {
   doctorName?: string | null;
   doctorCrm?: string | null;
   durationInDays?: number | null;
-  issuedAt?: string | null;
+  // issuedAt?: string | null;
   pdfUrl?: string | null;
 }
 
@@ -16,48 +16,48 @@ interface ValidationResultProps {
   error: string | null;
 }
 
-const formatIssuedAt = (value: string): string => {
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
+// const formatIssuedAt = (value: string): string => {
+//   try {
+//     const date = new Date(value);
+//     if (Number.isNaN(date.getTime())) {
+//       return value;
+//     }
 
-    const formatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
+//     const formatter = new Intl.DateTimeFormat("pt-BR", {
+//       timeZone: "America/Sao_Paulo",
+//       day: "2-digit",
+//       month: "2-digit",
+//       year: "numeric",
+//       hour: "2-digit",
+//       minute: "2-digit",
+//       second: "2-digit",
+//       hour12: false,
+//     });
 
-    const parts = formatter.formatToParts(date);
-    const get = (type: Intl.DateTimeFormatPartTypes) =>
-      parts.find((part) => part.type === type)?.value ?? "";
+//     const parts = formatter.formatToParts(date);
+//     const get = (type: Intl.DateTimeFormatPartTypes) =>
+//       parts.find((part) => part.type === type)?.value ?? "";
 
-    const day = get("day");
-    const month = get("month");
-    const year = get("year");
-    const hour = get("hour");
-    const minute = get("minute");
-    const second = get("second");
+//     const day = get("day");
+//     const month = get("month");
+//     const year = get("year");
+//     const hour = get("hour");
+//     const minute = get("minute");
+//     const second = get("second");
 
-    if (day && month && year && hour && minute && second) {
-      return `${day}/${month}/${year} - ${hour}:${minute}:${second} (GMT-03)`;
-    }
+//     if (day && month && year && hour && minute && second) {
+//       return `${day}/${month}/${year} - ${hour}:${minute}:${second} (GMT-03)`;
+//     }
 
-    const fallback = formatter
-      .format(date)
-      .replace(", ", " - ")
-      .replace(" ", " - ");
-    return `${fallback} (GMT-03)`;
-  } catch {
-    return value;
-  }
-};
+//     const fallback = formatter
+//       .format(date)
+//       .replace(", ", " - ")
+//       .replace(" ", " - ");
+//     return `${fallback} (GMT-03)`;
+//   } catch {
+//     return value;
+//   }
+// };
 
 export const ValidationResult = ({ result, error }: ValidationResultProps) => {
   if (error) {
@@ -137,9 +137,9 @@ export const ValidationResult = ({ result, error }: ValidationResultProps) => {
   const patientName = result.patientName?.trim() || "Não informado";
   const doctorName = result.doctorName?.trim() || "Não informado";
   const doctorCrm = result.doctorCrm?.trim();
-  const issuedAtLabel = result.issuedAt
-    ? formatIssuedAt(result.issuedAt)
-    : "Não informado";
+  // const issuedAtLabel = result.issuedAt
+  //   ? formatIssuedAt(result.issuedAt)
+  //   : "Não informado";
 
   return (
     <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center w-full">

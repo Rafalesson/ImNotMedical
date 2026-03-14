@@ -21,12 +21,34 @@ type UserWithProfiles = Prisma.UserGetPayload<{
 @Injectable()
 export class CertificateService {
   private readonly logger = new Logger(CertificateService.name);
+  private static readonly SAO_PAULO_TIMEZONE = 'America/Sao_Paulo';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly pdfService: PdfService,
     private readonly templatesService: TemplatesService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  private formatDateToSaoPaulo(value?: string | Date | null): string {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    const date = value ? new Date(value) : new Date();
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: CertificateService.SAO_PAULO_TIMEZONE,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  }
 
   private createCertificateCode(length = 8): string {
     const alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -116,8 +138,8 @@ export class CertificateService {
       durationInDays: dto.durationInDays || 0,
       durationInWords: numberToWords(dto.durationInDays || 0),
       startDate: dto.startDate
-        ? new Date(dto.startDate).toLocaleDateString('pt-BR')
-        : issueDate.toLocaleDateString('pt-BR'),
+        ? this.formatDateToSaoPaulo(dto.startDate)
+        : this.formatDateToSaoPaulo(issueDate),
       purpose: dto.purpose,
       cidCode: dto.cidCode,
       cidDescription: cid?.description,

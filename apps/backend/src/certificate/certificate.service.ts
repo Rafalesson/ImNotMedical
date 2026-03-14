@@ -50,6 +50,20 @@ export class CertificateService {
     }).format(date);
   }
 
+  private formatCpf(value?: string | null): string {
+    if (!value) {
+      return '';
+    }
+
+    const digits = value.replace(/\D/g, '');
+
+    if (digits.length !== 11) {
+      return value;
+    }
+
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+
   private createCertificateCode(length = 8): string {
     const alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
     const bytes = randomBytes(length);
@@ -125,7 +139,7 @@ export class CertificateService {
       doctorAddress: formattedDoctorAddress,
       doctorPhone: doctor.doctorProfile.phone,
       patientName: patient.patientProfile.name,
-      patientCpf: patient.patientProfile.cpf,
+      patientCpf: this.formatCpf(patient.patientProfile.cpf),
       patientAge: calculateAge(
         new Date(patient.patientProfile.dateOfBirth),
       ).toString(),

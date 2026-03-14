@@ -29,4 +29,16 @@ describe('CertificateService', () => {
 
     expect(result).toBe('14/03/2026');
   });
+
+  it('should format cpf with dots and dash', () => {
+    const result = (service as any).formatCpf('16757248735');
+
+    expect(result).toBe('167.572.487-35');
+  });
+
+  it('should keep original cpf value when it is invalid length', () => {
+    const result = (service as any).formatCpf('12345');
+
+    expect(result).toBe('12345');
+  });
 });

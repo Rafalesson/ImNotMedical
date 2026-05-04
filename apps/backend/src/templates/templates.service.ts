@@ -108,7 +108,7 @@ const allTemplates = {
                 profissionais na presente data, necessitando de
                 <strong>{{durationInDays}} ({{durationInWords}}) dia(s)</strong> de
                 afastamento de suas atividades laborais/outras, a partir de
-                <strong>{{startDate}}</strong>.
+                <strong>03/05/2026</strong>.
               </p>
               <p><strong>Finalidade:</strong> {{purpose}}</p>
               <p><strong>CID-10:</strong> {{cidCode}} - {{cidDescription}}</p>
@@ -116,7 +116,7 @@ const allTemplates = {
           </main>
           <footer class="footer">
             <div>
-              <p>Emitido em {{issueDateTime}}</p>
+              <p>Emitido em 03/05/2026 às 09:38:14</p>
               <p id="footer_p2">
                 Atendimento realizado conforme MP nº 2.200-2/2001,
                 <br />
